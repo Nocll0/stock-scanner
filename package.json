@@ -1,0 +1,55 @@
+{
+  "name": "stock-scanner",
+  "version": "3.0.0",
+  "description": "Day trader stock scanner — NASDAQ & NYSE with live data, watch list, pattern AI, and (coming) Tiger trading",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "server": "node server.js",
+    "dist": "electron-builder --win",
+    "release": "npm version patch --no-git-tag-version && electron-builder --win",
+    "publish": "npm version patch --no-git-tag-version && electron-builder --win --publish always"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "nz.scanner.stock",
+    "productName": "Stock Scanner",
+    "files": [
+      "main.js",
+      "server.js",
+      "index.html",
+      "package.json",
+      "build/**"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Nocll0",
+        "repo": "stock-scanner"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "StockScanner-setup-${version}.exe"
+    }
+  }
+}
