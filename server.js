@@ -577,8 +577,63 @@ function rowFromV7(q) {
 // ── Fallback: v8 chart endpoint (one symbol per call, NO crumb/cookie) ────────
 // This endpoint has stayed reliable while v7 increasingly returns 401s.
 // 3 months of daily bars gives us: current price, % change, volume and avg vol.
-async function fetchChartOne(symbol) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=3mo&interval=1d`;
+// ── Market regime ────────────────────────────────────────────────────────────
+// Reads the S&P 500's recent daily path and classifies the environment as
+// trending or choppy. Two complementary measures, both 0..1:
+//   • R²  — how cleanly closes fit a straight line (high = directional)
+//   • efficiency ratio — net move ÷ total path length (high = little zig-zag)
+// Trending markets favour breakouts/continuation; choppy markets favour fading
+// the edges (mean-reversion). The regime tells you WHICH signals to trust.
+let _regimeCache = null;
+async function computeMarketRegime() {
+  if (_regimeCache && Date.now() - _regimeCache.ts < 10 * 60 * 1000) return _regimeCache.val;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=1mo&interval=1d`;
+  const res = await fetch(url, { headers: YF_API_HEADERS, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+  if (!res.ok) return null;
+  const json = await res.json().catch(() => null);
+  const closes = (json?.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [])
+    .filter(c => typeof c === 'number');
+  if (closes.length < 12) return null;
+  const win = closes.slice(-20);
+  const n = win.length;
+
+  // R² of close vs bar index
+  let sx = 0, sy = 0, sxy = 0, sxx = 0;
+  win.forEach((c, i) => { sx += i; sy += c; sxy += i * c; sxx += i * i; });
+  const slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+  const icept = (sy - slope * sx) / n;
+  const mean = sy / n;
+  let ssRes = 0, ssTot = 0;
+  win.forEach((c, i) => { const fit = icept + slope * i; ssRes += (c - fit) ** 2; ssTot += (c - mean) ** 2; });
+  const r2 = ssTot > 0 ? Math.max(0, 1 - ssRes / ssTot) : 0;
+
+  // efficiency ratio: |net change| ÷ sum of |bar-to-bar changes|
+  let net = Math.abs(win[n - 1] - win[0]), path = 0;
+  for (let i = 1; i < n; i++) path += Math.abs(win[i] - win[i - 1]);
+  const eff = path > 0 ? net / path : 0;
+
+  // combine: both high → trending; both low → choppy
+  const trendScore = (r2 * 0.6 + eff * 0.4);
+  const dir = slope > 0 ? 'up' : slope < 0 ? 'down' : 'flat';
+  let regime, advice;
+  if (trendScore >= 0.55) {
+    regime = `trending ${dir}`;
+    advice = dir === 'up'
+      ? 'Breakouts and pullback-buys tend to work; fading strength is risky.'
+      : 'Breakdowns and bounce-sells tend to work; buying dips is risky.';
+  } else if (trendScore <= 0.3) {
+    regime = 'choppy / range-bound';
+    advice = 'Fading the edges (buy support, sell resistance) tends to work; breakouts often fail.';
+  } else {
+    regime = 'mixed / transitioning';
+    advice = 'No clear edge for trend or reversion right now — trade smaller or wait.';
+  }
+  const val = { regime, dir, advice, trendScore: +trendScore.toFixed(2), r2: +r2.toFixed(2), eff: +eff.toFixed(2) };
+  _regimeCache = { ts: Date.now(), val };
+  return val;
+}
+
+async function fetchChartOne(symbol) {  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=3mo&interval=1d`;
   const res = await fetch(url, {
     headers: YF_API_HEADERS,
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
@@ -846,6 +901,52 @@ function getTickersForMarket(marketKey, mode = 'standard') {
 // app updates and reinstalls (the install dir is replaced on every update).
 const LEARN_DIR  = path.join(os.homedir(), '.stock-scanner');
 const LEARN_FILE = path.join(LEARN_DIR, 'learning.json');
+const JOURNAL_FILE = path.join(LEARN_DIR, 'journal.json');
+const PAPER_FILE = path.join(LEARN_DIR, 'paper.json');
+const CANDLE_DIR = path.join(LEARN_DIR, 'candles');
+
+// ── Candle-history storage ────────────────────────────────────────────────
+// Each symbol/interval gets a JSON file of accumulated bars. We merge new bars
+// in by timestamp (dedup, keep latest values), cap the file so it can't grow
+// without bound, and only store intraday timeframes (daily already has years).
+const CANDLE_CAP = { '1m': 4000, '2m': 4000, '5m': 6000, '15m': 6000, '30m': 5000, '60m': 5000, '1d': 0 };
+
+function candleFile(symbol, interval) {
+  const safe = symbol.replace(/[^A-Za-z0-9.\-^=]/g, '_');
+  return path.join(CANDLE_DIR, `${safe}__${interval}.json`);
+}
+
+function readCandleHistory(symbol, interval) {
+  try {
+    return JSON.parse(fs.readFileSync(candleFile(symbol, interval), 'utf8')) || [];
+  } catch { return []; }
+}
+
+function readCandleHistoryCount(symbol, interval) {
+  return readCandleHistory(symbol, interval).length;
+}
+
+function mergeCandleHistory(symbol, interval, fresh) {
+  const cap = CANDLE_CAP[interval];
+  if (!cap || !fresh || !fresh.length) return; // daily/unknown → skip storage
+  try {
+    fs.mkdirSync(CANDLE_DIR, { recursive: true });
+    const existing = readCandleHistory(symbol, interval);
+    const byTime = new Map();
+    for (const c of existing) byTime.set(c.time, c);
+    for (const c of fresh) byTime.set(c.time, c);     // fresh overwrites stale
+    let merged = [...byTime.values()].sort((a, b) => a.time - b.time);
+    if (merged.length > cap) merged = merged.slice(-cap); // keep most recent
+    // recompute gapBefore across the stitched series (boundaries shift on merge)
+    const secs = { '1m':60,'2m':120,'5m':300,'15m':900,'30m':1800,'60m':3600 }[interval] || 60;
+    for (let i = 0; i < merged.length; i++) {
+      merged[i].gapBefore = i > 0 && (merged[i].time - merged[i - 1].time) > secs * 2.5;
+    }
+    const tmp = candleFile(symbol, interval) + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(merged));
+    fs.renameSync(tmp, candleFile(symbol, interval));   // atomic
+  } catch { /* storage failure is non-fatal — live data still works */ }
+}
 
 // Synchronous read of the learning file for watchScore (small file, cached)
 let _learnCache = null, _learnCacheTs = 0;
@@ -934,7 +1035,10 @@ const server = http.createServer(async (req, res) => {
           if (row) out[key] = { label, price: row.price, change: row.change };
         } catch { /* index unavailable this tick */ }
       }));
-      sendJSON(res, 200, { ok: true, indices: out, ts: Date.now() });
+      // Market regime, read from the S&P's recent daily path
+      let regime = null;
+      try { regime = await computeMarketRegime(); } catch { /* non-fatal */ }
+      sendJSON(res, 200, { ok: true, indices: out, regime, ts: Date.now() });
       return;
     }
 
@@ -1099,6 +1203,19 @@ const server = http.createServer(async (req, res) => {
         for (const c of candles) c.thin = false;
       }
 
+      // ── Persist candle history so backtests grow beyond Yahoo's short window ──
+      // Merge these freshly-fetched bars into a per-symbol/interval file on disk.
+      // Over weeks of use this accumulates far more history than a single fetch.
+      mergeCandleHistory(symbol, interval, candles);
+
+      // If the client asks for the full accumulated history, return that instead
+      // of just the live window (used by the backtester for a longer sample).
+      let outCandles = candles;
+      if (urlObj.searchParams.get('hist') === '1') {
+        const stored = readCandleHistory(symbol, interval);
+        if (stored.length > candles.length) outCandles = stored;
+      }
+
       sendJSON(res, 200, {
         ok: true,
         symbol: meta.symbol || symbol,
@@ -1108,7 +1225,8 @@ const server = http.createServer(async (req, res) => {
         cur:    meta.currency || null,
         interval,
         range,
-        candles,
+        candles: outCandles,
+        stored: readCandleHistoryCount(symbol, interval),
       });
       return;
     }
@@ -1228,6 +1346,64 @@ const server = http.createServer(async (req, res) => {
         const tmp = LEARN_FILE + '.tmp';
         await fs.promises.writeFile(tmp, JSON.stringify(data));
         await fs.promises.rename(tmp, LEARN_FILE); // atomic — a crash can't corrupt it
+        sendJSON(res, 200, { ok: true });
+      } catch (e) {
+        sendJSON(res, 500, { ok: false, error: e.message });
+      }
+      return;
+    }
+
+    if (route === '/paper' && req.method === 'GET') {
+      try {
+        const raw = await fs.promises.readFile(PAPER_FILE, 'utf8');
+        sendJSON(res, 200, { ok: true, data: JSON.parse(raw) });
+      } catch {
+        sendJSON(res, 200, { ok: true, data: null }); // first run — client seeds defaults
+      }
+      return;
+    }
+
+    if (route === '/paper' && req.method === 'POST') {
+      try {
+        const body = await readBody(req, 2_000_000);
+        const data = JSON.parse(body);
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          sendJSON(res, 400, { ok: false, error: 'Paper account must be an object' });
+          return;
+        }
+        await fs.promises.mkdir(LEARN_DIR, { recursive: true });
+        const tmp = PAPER_FILE + '.tmp';
+        await fs.promises.writeFile(tmp, JSON.stringify(data));
+        await fs.promises.rename(tmp, PAPER_FILE);
+        sendJSON(res, 200, { ok: true });
+      } catch (e) {
+        sendJSON(res, 500, { ok: false, error: e.message });
+      }
+      return;
+    }
+
+    if (route === '/journal' && req.method === 'GET') {
+      try {
+        const raw = await fs.promises.readFile(JOURNAL_FILE, 'utf8');
+        sendJSON(res, 200, { ok: true, data: JSON.parse(raw) });
+      } catch {
+        sendJSON(res, 200, { ok: true, data: { trades: [] } }); // first run
+      }
+      return;
+    }
+
+    if (route === '/journal' && req.method === 'POST') {
+      try {
+        const body = await readBody(req, 2_000_000); // journals can grow — allow 2MB
+        const data = JSON.parse(body);
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          sendJSON(res, 400, { ok: false, error: 'Journal must be an object' });
+          return;
+        }
+        await fs.promises.mkdir(LEARN_DIR, { recursive: true });
+        const tmp = JOURNAL_FILE + '.tmp';
+        await fs.promises.writeFile(tmp, JSON.stringify(data));
+        await fs.promises.rename(tmp, JOURNAL_FILE);
         sendJSON(res, 200, { ok: true });
       } catch (e) {
         sendJSON(res, 500, { ok: false, error: e.message });

@@ -66,19 +66,26 @@
 
   .trade-btn {
     font-family: var(--mono); font-size: 11px; font-weight: 600;
-    background: transparent; color: var(--text-dim); border: 1px solid var(--border);
-    padding: 7px 14px; cursor: not-allowed; letter-spacing: 1px; text-transform: uppercase;
+    background: transparent; color: #3b82f6; border: 1px solid rgba(59,130,246,0.5);
+    padding: 7px 14px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
     transition: all 0.2s; position: relative;
   }
-  .trade-btn:disabled { opacity: 0.55; }
+  .trade-btn:hover { background: rgba(59,130,246,0.12); }
   .trade-btn::after {
-    content: 'SOON'; position: absolute; top: -7px; right: -7px;
-    font-size: 7px; background: var(--muted); color: #000; padding: 1px 4px;
+    content: 'PAPER'; position: absolute; top: -7px; right: -7px;
+    font-size: 7px; background: #3b82f6; color: #000; padding: 1px 4px;
     border-radius: 2px; letter-spacing: 0.5px;
   }
 
   /* ── Index ticker (S&P / Dow / Nasdaq) ── */
   .index-ticker { display: flex; gap: 14px; align-items: center; font-family: var(--mono); font-size: 10.5px; }
+  .regime-badge { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.5px;
+    padding: 3px 8px; border: 1px solid var(--border); cursor: help; white-space: nowrap; margin-right: 4px; }
+  .regime-badge .reg-label { font-size: 9px; }
+  .regime-badge.reg-up { color: var(--green); border-color: rgba(0,212,170,0.4); }
+  .regime-badge.reg-down { color: var(--red); border-color: rgba(255,77,106,0.4); }
+  .regime-badge.reg-chop { color: var(--yellow); border-color: rgba(245,197,66,0.4); }
+  .regime-badge.reg-mixed { color: var(--text-dim); }
   .index-ticker .idx { display: flex; gap: 5px; align-items: baseline; white-space: nowrap; }
   .index-ticker .idx-name { color: var(--text-dim); }
   .index-ticker .idx-val { color: var(--text); }
@@ -258,8 +265,10 @@
   #chartOverlay.show { display: flex; }
   .chart-modal {
     width: min(1080px, 100%); height: min(640px, 92vh);
+    min-width: 480px; min-height: 360px; max-width: 100%; max-height: 96vh;
     background: var(--surface); border: 1px solid var(--border);
     display: flex; flex-direction: column;
+    resize: both; overflow: hidden;
   }
   .chart-head {
     display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
@@ -303,6 +312,158 @@
   .pattern-panel .pp-row { cursor: help; }
   .pattern-panel .pp-row:hover { background: rgba(255,255,255,0.03); }
   .pattern-panel .pp-ctx { cursor: help; border-bottom: 1px dotted currentColor; }
+  .pattern-panel .pp-diverge { cursor: help; line-height: 1.45; }
+  .backtest-panel {
+    position: absolute; top: 10px; right: 10px; z-index: 6;
+    background: rgba(10,16,24,0.94); border: 1px solid var(--border);
+    padding: 10px 13px; max-width: 280px; font-family: var(--mono);
+    font-size: 10.5px; line-height: 1.6; color: var(--text);
+  }
+  .backtest-panel .bt-title { color: #3b82f6; font-weight: 600; letter-spacing: 1px; margin-bottom: 4px; }
+  .backtest-panel .bt-grid { display: grid; grid-template-columns: auto auto; gap: 1px 10px; margin-top: 5px; }
+  .backtest-panel .bt-grid span:nth-child(odd) { color: var(--text-dim); cursor: help; }
+  .backtest-panel .bt-grid span:nth-child(even) { text-align: right; }
+  .backtest-panel .bt-learned { color: var(--muted); font-size: 9px; margin-top: 6px; cursor: help; border-top: 1px solid var(--border); padding-top: 5px; }
+  .backtest-panel .bt-note { color: var(--text-dim); font-size: 8.5px; margin-top: 6px; cursor: help; line-height: 1.4; }
+  /* Position sizer panel */
+  .sizer-panel {
+    position: absolute; bottom: 10px; right: 10px; z-index: 7;
+    background: rgba(10,16,24,0.96); border: 1px solid var(--border);
+    padding: 12px 14px; width: 250px; font-family: var(--mono);
+    font-size: 11px; color: var(--text);
+  }
+  .sizer-panel .sz-title { color: var(--accent); font-weight: 600; letter-spacing: 1px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .sizer-panel .sz-row { display: flex; justify-content: space-between; align-items: center; margin: 5px 0; gap: 8px; }
+  .sizer-panel .sz-row label { color: var(--text-dim); cursor: help; }
+  .sizer-panel input {
+    background: #0a0e14; border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 11px; width: 90px; padding: 3px 6px; text-align: right;
+  }
+  .sizer-panel input:focus { outline: none; border-color: var(--accent); }
+  .sizer-panel .sz-out { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 8px; }
+  .sizer-panel .sz-big { font-size: 16px; font-weight: 600; color: var(--accent); }
+  .sizer-panel .sz-sub { color: var(--text-dim); font-size: 9.5px; line-height: 1.5; margin-top: 4px; }
+  .sizer-panel .sz-warn { color: var(--red); font-size: 9.5px; margin-top: 5px; }
+  .sizer-panel .sz-close { cursor: pointer; color: var(--text-dim); }
+  .sizer-panel .sz-close:hover { color: var(--text); }
+  /* Risk/Reward panel — bottom-left so it clears the analysis panel */
+  .rr-panel { position: absolute; bottom: 10px; left: 10px; z-index: 7; width: 230px; }
+  /* Replay controls bar */
+  .replay-controls { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+    z-index: 8; display: flex; align-items: center; gap: 6px; background: rgba(10,16,24,0.96);
+    border: 1px solid var(--border); padding: 6px 8px; font-family: var(--mono); font-size: 11px; }
+  .replay-controls button { font-family: var(--mono); font-size: 11px; padding: 4px 9px; cursor: pointer;
+    background: #0e1620; border: 1px solid var(--border); color: var(--text); }
+  .replay-controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .replay-controls #replayBuyBtn { border-color: rgba(59,130,246,0.5); color: #3b82f6; }
+  .replay-controls .replay-exit { border-color: rgba(255,77,106,0.4); color: var(--red); }
+  .replay-status { color: var(--text-dim); font-size: 10px; padding: 0 6px; white-space: nowrap; }
+
+  /* Journal modal */
+  #journalOverlay { display: none; position: fixed; inset: 0; z-index: 400;
+    background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+  #journalOverlay.show { display: flex; }
+  #journalModal { background: #0a0e14; border: 1px solid var(--border); width: 560px;
+    max-width: 94vw; max-height: 88vh; display: flex; flex-direction: column; font-family: var(--mono); }
+  .jr-head { display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px;
+    font-weight: 600; letter-spacing: 1px; color: var(--accent); }
+  .jr-close { cursor: pointer; color: var(--text-dim); font-weight: 400; }
+  .jr-close:hover { color: var(--text); }
+  #jrBody { padding: 16px; overflow-y: auto; font-size: 12px; color: var(--text); }
+  .jr-q { margin-bottom: 14px; }
+  .jr-q .jr-label { color: var(--text-dim); font-size: 11px; margin-bottom: 6px; }
+  .jr-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .jr-opt { font-family: var(--mono); font-size: 11px; padding: 6px 12px; cursor: pointer;
+    background: #0e1620; border: 1px solid var(--border); color: var(--text-dim); transition: all 0.15s; }
+  .jr-opt:hover { border-color: var(--muted); color: var(--text); }
+  .jr-opt.sel { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .jr-opt.sel-red { background: var(--red); color: #fff; border-color: var(--red); }
+  .jr-num { display: flex; gap: 8px; flex-wrap: wrap; }
+  .jr-num label { color: var(--text-dim); font-size: 10px; display: flex; flex-direction: column; gap: 3px; }
+  .jr-num input { background: #0a0e14; border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 12px; width: 90px; padding: 4px 7px; }
+  .jr-num input:focus { outline: none; border-color: var(--accent); }
+  .jr-note { width: 100%; background: #0a0e14; border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 11px; padding: 7px; resize: vertical; min-height: 44px; }
+  .jr-note:focus { outline: none; border-color: var(--accent); }
+  .jr-actions { display: flex; gap: 8px; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .jr-btn { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 8px 18px;
+    cursor: pointer; border: none; letter-spacing: 1px; text-transform: uppercase; background: var(--accent); color: #000; }
+  .jr-btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
+  .jr-btn:hover { opacity: 0.88; }
+  .jr-prefill { font-size: 10px; color: var(--muted); margin-bottom: 12px; padding: 6px 8px;
+    background: #0e1620; border-left: 2px solid var(--accent); }
+  /* Journal history list */
+  .jr-trade { border: 1px solid var(--border); padding: 10px 12px; margin-bottom: 8px; }
+  .jr-trade-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .jr-sym { font-weight: 600; font-size: 13px; }
+  .jr-pnl-win { color: var(--green); font-weight: 600; }
+  .jr-pnl-loss { color: var(--red); font-weight: 600; }
+  .jr-open-tag { font-size: 9px; background: var(--muted); color: #000; padding: 1px 6px; }
+  .jr-meta { color: var(--text-dim); font-size: 10px; margin-top: 4px; line-height: 1.6; }
+  .jr-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 14px;
+    background: #0e1620; padding: 10px; }
+  .jr-summary .jr-stat { text-align: center; }
+  .jr-summary .jr-stat-v { font-size: 16px; font-weight: 600; }
+  .jr-summary .jr-stat-l { font-size: 9px; color: var(--text-dim); text-transform: uppercase; }
+  .jr-empty { color: var(--text-dim); text-align: center; padding: 30px; font-size: 11px; line-height: 1.6; }
+  /* Paper trading modal — mirrors journal modal styling */
+  #paperOverlay { display: none; position: fixed; inset: 0; z-index: 400;
+    background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+  #paperOverlay.show { display: flex; }
+  #paperModal { background: #0a0e14; border: 1px solid var(--border); width: 620px;
+    max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column; font-family: var(--mono); }
+  #paperBody { padding: 16px; overflow-y: auto; font-size: 12px; color: var(--text); }
+  .pf-equity { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; background: #0e1620; padding: 12px; }
+  .pf-stat { text-align: center; }
+  .pf-stat-v { font-size: 17px; font-weight: 600; }
+  .pf-stat-l { font-size: 9px; color: var(--text-dim); text-transform: uppercase; margin-top: 2px; }
+  .pf-section-h { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;
+    margin: 14px 0 7px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  .pf-pos { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr auto; gap: 8px; align-items: center;
+    padding: 8px 6px; border-bottom: 1px solid var(--border); font-size: 11px; }
+  .pf-pos .pf-sym { font-weight: 600; }
+  .pf-pos .pf-sub { color: var(--text-dim); font-size: 9px; }
+  .pf-close-btn { font-family: var(--mono); font-size: 10px; padding: 4px 10px; cursor: pointer;
+    background: #0e1620; border: 1px solid rgba(255,77,106,0.4); color: var(--red); }
+  .pf-close-btn:hover { background: rgba(255,77,106,0.12); }
+  .pf-guard { background: #0e1620; border-left: 2px solid var(--accent); padding: 8px 10px; font-size: 10px;
+    line-height: 1.5; margin-bottom: 12px; }
+  .pf-guard.locked { border-left-color: var(--red); color: var(--red); }
+  .pf-set-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 10.5px; color: var(--text-dim); }
+  .pf-set-row input[type=number] { background: #0a0e14; border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 11px; width: 64px; padding: 3px 6px; }
+  .pf-toggle { cursor: pointer; padding: 3px 10px; border: 1px solid var(--border); font-size: 10px; }
+  .pf-toggle.on { background: var(--green); color: #000; border-color: var(--green); }
+  /* Trade ticket */
+  .pf-ticket { background: #0e1620; padding: 12px; margin-bottom: 14px; }
+  .pf-ticket .pf-tnum { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .pf-ticket label { color: var(--text-dim); font-size: 10px; display: flex; flex-direction: column; gap: 3px; }
+  .pf-ticket input { background: #0a0e14; border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 12px; width: 88px; padding: 4px 7px; }
+  .pf-buy-btn { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 8px 20px; cursor: pointer;
+    background: #3b82f6; color: #000; border: none; text-transform: uppercase; letter-spacing: 1px; }
+  .pf-buy-btn:hover { opacity: 0.9; }
+  .jr-tab { font-size: 10px; color: var(--text-dim); cursor: pointer; padding: 3px 8px; border: 1px solid transparent; letter-spacing: 0.5px; text-transform: uppercase; }
+  .jr-tab:hover { color: var(--text); }
+  .jr-tab.active { color: var(--accent); border-color: var(--border); }
+  /* Dashboard */
+  .db-section { margin-bottom: 18px; }
+  .db-h { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  .db-equity { width: 100%; height: 120px; display: block; }
+  .db-bars { display: flex; flex-direction: column; gap: 5px; }
+  .db-bar-row { display: grid; grid-template-columns: 110px 1fr 64px; gap: 8px; align-items: center; font-size: 10.5px; }
+  .db-bar-label { color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .db-bar-track { background: #0e1620; height: 14px; position: relative; }
+  .db-bar-fill { height: 100%; position: absolute; top: 0; }
+  .db-bar-fill.pos { background: var(--green); left: 50%; }
+  .db-bar-fill.neg { background: var(--red); right: 50%; }
+  .db-bar-mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--muted); }
+  .db-bar-val { text-align: right; font-family: var(--mono); }
+  .db-insight { background: #0e1620; border-left: 2px solid var(--accent); padding: 8px 10px; font-size: 10.5px; line-height: 1.55; color: var(--text); margin-bottom: 14px; }
+  .db-insight.warn { border-left-color: var(--red); }
+  .db-tiny { color: var(--text-dim); font-size: 9px; }
   .confl-bar { position: relative; height: 5px; background: var(--border); margin-top: 4px; border-radius: 2px; overflow: hidden; }
   .confl-bar::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--muted); }
   .confl-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
@@ -336,7 +497,7 @@
 
   /* ── News modal ── */
   #newsOverlay {
-    display: none; position: fixed; inset: 0; z-index: 100;
+    display: none; position: fixed; inset: 0; z-index: 400;
     background: rgba(4, 6, 10, 0.82); backdrop-filter: blur(3px);
     align-items: center; justify-content: center; padding: 20px;
   }
@@ -415,8 +576,8 @@
       <span id="status-text">Not connected</span>
     </div>
     <button class="scan-btn" id="scanBtn" onclick="runScan(true)">▶ Scan Now</button>
-    <button class="trade-btn" id="tradeBtn" disabled
-      title="Live trading via Tiger Brokers — coming soon. Will let you place orders on the selected stock.">⇄ Trade</button>
+    <button class="trade-btn" id="tradeBtn" onclick="openPaperPortfolio()"
+      title="Paper trading — practice with simulated money. Open positions, track them live, auto-close at stops/targets, with risk guardrails. Mirrors what real Tiger trading will do, risk-free.">⇄ Paper</button>
   </div>
 </header>
 
@@ -480,6 +641,7 @@
     title="Show a Windows desktop notification when a big mover appears (a stock that newly matches your filters with a large move). Independent of the sound Alert.">🔔 Notify</button>
   <button class="tool-btn" id="scopeToggle" onclick="toggleScope()"
     title="Liquid: a curated set of active, tradeable stocks (fast). Full: every listed US stock, scanned in rotation for complete coverage (slower per refresh). US tab only.">◷ Liquid</button>
+  <button class="tool-btn" onclick="openJournalHistory()" title="Open your trade journal — review logged trades, outcomes, and whether you followed your plan.">✎ Journal</button>
   <button class="tool-btn" onclick="exportCSV()" title="Download current view as CSV">⤓ CSV</button>
 </div>
 
@@ -505,6 +667,7 @@
         <th data-col="ticker" onclick="setSortCol('ticker')">Ticker</th>
         <th data-col="price" onclick="setSortCol('price')">Price</th>
         <th data-col="change" onclick="setSortCol('change')">Δ%</th>
+        <th data-col="rs" onclick="setSortCol('rs')" title="Relative strength: this stock's move today minus the S&P 500's. Positive = outperforming the market (real strength, not just riding the tide); negative = lagging. US stocks only.">RS</th>
         <th data-col="gap" onclick="setSortCol('gap')" title="Open vs yesterday's close">Gap%</th>
         <th data-col="volume" onclick="setSortCol('volume')">Volume</th>
         <th data-col="avgVol" onclick="setSortCol('avgVol')">Avg Vol</th>
@@ -563,10 +726,17 @@
         <button class="tf-btn" id="indEma9" onclick="toggleIndicator('ema9')" title="9-period exponential moving average">EMA9</button>
         <button class="tf-btn" id="indEma20" onclick="toggleIndicator('ema20')" title="20-period exponential moving average">EMA20</button>
         <button class="tf-btn" id="patternBtn" onclick="togglePatterns()" title="Experimental analysis suite (all self-learning): candlestick patterns, trend forecast cone, fair value gaps, support/resistance levels, plus volume / trend / VWAP context. Every signal grades itself 3 bars later and learns. Hints, not advice.">◬ ANALYZE</button>
+        <button class="tf-btn" id="backtestBtn" onclick="runBacktest()" title="Backtest the confluence strategy on this chart's history: simulated long trades with learner-optimised ATR stops/targets, one position at a time, fees+slippage included. Shows entries/exits and P&L. A sanity check on limited data — never a profit promise.">⊞ BACKTEST</button>
       </div>
       <div class="chart-tfs">
         <button class="tf-btn" id="fibBtn" onclick="toggleFibMode()" title="Draw a Fibonacci retracement">⌁ FIB</button>
         <button class="tf-btn" id="fibClearBtn" onclick="clearFib()" title="Remove Fibonacci levels" style="display:none">✕ FIB</button>
+        <button class="tf-btn" id="rrBtn" onclick="toggleRR()" title="Risk/Reward visualizer: click your entry, then stop, then target. Shows the reward-to-risk ratio and — using your saved account and risk % from the position sizer — the share count and dollar risk/reward for those exact levels.">⊞ R/R</button>
+        <button class="tf-btn" id="rrClearBtn" onclick="clearRR()" title="Clear the risk/reward drawing" style="display:none">✕ R/R</button>
+        <button class="tf-btn" id="sizerBtn" onclick="toggleSizer()" title="Position-size calculator: given your account size and risk-per-trade, and a stop level, it tells you how many shares to buy so a stop-out loses only what you intend. The most important risk tool there is.">⊞ SIZE</button>
+        <button class="tf-btn" id="journalBtn" onclick="openJournalForm()" title="Log this trade to your journal — a quick tap-through form, pre-filled from the R/R and sizer levels you've drawn. Log on entry, update the outcome later.">✎ JOURNAL</button>
+        <button class="tf-btn" id="replayBtn" onclick="toggleReplay()" title="Replay / practice mode: hides the recent bars and lets you step through them one at a time, with the analysis recomputing on only what's revealed (no lookahead). Place practice trades and see how they'd play out — risk-free reps to train your eye.">⏯ REPLAY</button>
+        <button class="tf-btn" id="paperBuyBtn" onclick="openTradeTicket()" title="Paper buy: open a simulated position in this stock, pre-filled from your R/R levels and position sizer. Tracked live, auto-closes at your stop/target.">⇄ PAPER BUY</button>
         <button class="tf-btn" id="chartToNews" title="Latest news for this stock">📰 NEWS</button>
       </div>
       <button class="chart-close" onclick="closeChart()" title="Close (Esc)">✕</button>
@@ -579,6 +749,32 @@
       <span id="chartAuto"></span>
       <span style="margin-left:auto">scroll to zoom · drag to pan</span>
     </div>
+  </div>
+</div>
+
+<!-- Journal modal: tap-driven trade logging + history review -->
+<div id="journalOverlay">
+  <div id="journalModal">
+    <div class="jr-head">
+      <span id="jrTitle">Trade Journal</span>
+      <span style="display:flex;gap:10px;align-items:center">
+        <span class="jr-tab" id="jrTabList" onclick="openJournalHistory()">Trades</span>
+        <span class="jr-tab" id="jrTabDash" onclick="openDashboard()">Dashboard</span>
+        <span class="jr-close" onclick="closeJournal()" title="Close (Esc)">✕</span>
+      </span>
+    </div>
+    <div id="jrBody"></div>
+  </div>
+</div>
+
+<!-- Paper trading modal -->
+<div id="paperOverlay">
+  <div id="paperModal">
+    <div class="jr-head">
+      <span id="paperTitle">Paper Trading</span>
+      <span class="jr-close" onclick="closePaper()" title="Close (Esc)">✕</span>
+    </div>
+    <div id="paperBody"></div>
   </div>
 </div>
 
@@ -682,6 +878,22 @@
     return CUR_SYM[r.cur] || (r.cur ? r.cur + ' ' : '');
   }
 
+  // Relative strength: stock's % change minus the S&P 500's today. Only
+  // meaningful for US-listed names (the S&P is the benchmark). AU/NZ/OTHER → null.
+  function rsValue(r) {
+    if (benchChange == null) return null;
+    if (currentMarket !== 'US' && currentMarket !== 'WATCH') return null;
+    if (typeof r.change !== 'number') return null;
+    return r.change - benchChange;
+  }
+  function rsCell(r) {
+    const rs = rsValue(r);
+    if (rs == null) return '<td style="color:var(--text-dim)">—</td>';
+    const cls = rs > 0 ? 'up' : rs < 0 ? 'down' : 'flat';
+    const lead = rs >= 1.5 ? ' ★' : ''; // clear leader: 1.5%+ ahead of the market
+    return `<td class="${cls}" title="${rs >= 0 ? 'Outperforming' : 'Lagging'} the S&P by ${Math.abs(rs).toFixed(2)} pts today">${rs > 0 ? '+' : ''}${rs.toFixed(2)}${lead}</td>`;
+  }
+
   function saveFavs() {
     localStorage.setItem('scanner-favs', JSON.stringify([...favs]));
   }
@@ -774,15 +986,18 @@
   function exportCSV() {
     if (!lastRenderedRows.length) return;
     const cols = ['ticker','name','price','change','gap','volume','avgVol','relVol','rangePos','shares','mktCap'];
-    const head = 'Ticker,Name,Price,Change%,Gap%,Volume,AvgVol,RelVol,RangePos%,SharesOut,MktCap';
-    const lines = lastRenderedRows.map(r =>
-      cols.map(c => {
+    const head = 'Ticker,Name,Price,Change%,RS_vs_SP500,Gap%,Volume,AvgVol,RelVol,RangePos%,SharesOut,MktCap';
+    const lines = lastRenderedRows.map(r => {
+      const rs = rsValue(r);
+      const cells = cols.map(c => {
         const v = r[c];
         if (v == null) return '';
-        // quote strings that may contain commas
         return typeof v === 'string' ? '"' + v.replace(/"/g, '""') + '"' : v;
-      }).join(',')
-    );
+      });
+      // insert RS right after change (index 3 → after price,change is at idx 3)
+      cells.splice(4, 0, rs == null ? '' : rs.toFixed(2));
+      return cells.join(',');
+    });
     const blob = new Blob([head + '\n' + lines.join('\n')], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -854,12 +1069,19 @@
     }
     refreshIndices();
     setInterval(refreshIndices, 30000); // indices update every 30s
+    loadPaper();   // load the paper account so live stop-checks and auto-follow work
   }
 
+  let benchChange = null;   // S&P 500 % change today — benchmark for relative strength
   async function refreshIndices() {    try {
       const res = await fetch('/indices');
       const json = await res.json();
       if (!json.ok) return;
+      if (json.indices.sp500 && typeof json.indices.sp500.change === 'number') {
+        benchChange = json.indices.sp500.change;
+        if (typeof renderTable === 'function' && allData && allData.length) renderTable();
+      }
+      renderRegime(json.regime);
       const el = document.getElementById('indexTicker');
       const order = ['sp500', 'dow', 'nasdaq'];
       el.innerHTML = order.filter(k => json.indices[k]).map(k => {
@@ -871,6 +1093,28 @@
           `<span class="idx-chg ${up ? 'up' : 'down'}">${arrow}${Math.abs(ix.change).toFixed(2)}%</span></span>`;
       }).join('');
     } catch { /* indices are decorative; ignore failures */ }
+  }
+
+  function renderRegime(regime) {
+    let el = document.getElementById('regimeBadge');
+    if (!el) {
+      // insert a badge just before the index ticker in the header
+      const strip = document.getElementById('indexTicker');
+      if (!strip) return;
+      el = document.createElement('span');
+      el.id = 'regimeBadge';
+      el.className = 'regime-badge';
+      strip.parentNode.insertBefore(el, strip);
+    }
+    if (!regime) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    const trending = /trending/.test(regime.regime);
+    const choppy = /choppy/.test(regime.regime);
+    const icon = trending ? (regime.dir === 'up' ? '↗' : '↘') : choppy ? '↔' : '↮';
+    const cls = trending ? (regime.dir === 'up' ? 'reg-up' : 'reg-down') : choppy ? 'reg-chop' : 'reg-mixed';
+    el.className = `regime-badge ${cls}`;
+    el.innerHTML = `${icon} <span class="reg-label">${esc(regime.regime.toUpperCase())}</span>`;
+    el.title = `Market regime (from the S&P's recent daily path): ${regime.regime}. ${regime.advice}\n\nTrend strength ${Math.round(regime.trendScore*100)}/100 (R² ${regime.r2}, efficiency ${regime.eff}). Trending markets favour breakouts and continuation; choppy markets favour fading the edges. This tells you which of your signals to lean on today.`;
   }
 
   function buildMarketTabs() {
@@ -1084,8 +1328,12 @@
       filtered.sort((a, b) => (b.watch ?? 0) - (a.watch ?? 0));
     } else {
       filtered.sort((a, b) => {
-        const av = sortCol === 'change' ? Math.abs(a.change) : (a[sortCol] ?? 0);
-        const bv = sortCol === 'change' ? Math.abs(b.change) : (b[sortCol] ?? 0);
+        const av = sortCol === 'change' ? Math.abs(a.change)
+                 : sortCol === 'rs' ? (rsValue(a) ?? -Infinity)
+                 : (a[sortCol] ?? 0);
+        const bv = sortCol === 'change' ? Math.abs(b.change)
+                 : sortCol === 'rs' ? (rsValue(b) ?? -Infinity)
+                 : (b[sortCol] ?? 0);
         if (typeof av === 'string' || typeof bv === 'string') {
           return sortAsc
             ? String(av).localeCompare(String(bv))
@@ -1171,6 +1419,7 @@
         </div></td>
         <td>${esc(cur)}${r.price.toFixed(r.price < 1 ? 3 : 2)}</td>
         <td class="${cls}">${sign}${r.change.toFixed(2)}%</td>
+        ${rsCell(r)}
         <td class="${gapCls}">${gapTxt}</td>
         <td>${fmtVol(r.volume)}</td>
         <td style="color:var(--text-dim)">${fmtVol(r.avgVol)}</td>
@@ -1340,7 +1589,8 @@
   // moved in the predicted direction → win, otherwise → loss. Stats persist in
   // ~/.stock-scanner/learning.json and shape every future forecast.
   const EVAL_BARS = 3;
-  let learn = { patterns: {}, trend: {}, fvg: {}, levels: {}, sweeps: {}, poc: {}, confluence: {}, open: [], done: [] };
+  const emptyPaper = () => ({ open: [], stats: { wins: 0, losses: 0, netPct: 0, grossWin: 0, grossLoss: 0, closed: 0, byTier: {}, history: [] } });
+  let learn = { patterns: {}, trend: {}, fvg: {}, levels: {}, sweeps: {}, poc: {}, confluence: {}, strategy: {}, backtest: {}, paper: emptyPaper(), open: [], done: [] };
   let learnLoaded = false;
   let learnSaveTimer = null;
 
@@ -1349,12 +1599,21 @@
       const res = await fetch('/learning');
       const json = await res.json();
       if (json.ok && json.data && typeof json.data === 'object') {
-        learn = Object.assign({ patterns: {}, trend: {}, fvg: {}, levels: {}, sweeps: {}, poc: {}, confluence: {}, open: [], done: [] }, json.data);
+        learn = Object.assign({ patterns: {}, trend: {}, fvg: {}, levels: {}, sweeps: {}, poc: {}, confluence: {}, strategy: {}, backtest: {}, paper: emptyPaper(), open: [], done: [] }, json.data);
         learn.fvg = learn.fvg || {};
         learn.levels = learn.levels || {};
         learn.sweeps = learn.sweeps || {};
         learn.poc = learn.poc || {};
         learn.confluence = learn.confluence || {};
+        learn.backtest = learn.backtest || {};
+        learn.strategy = learn.strategy || {};
+        // paper scorecard — backfill any missing fields from older files
+        if (!learn.paper || !learn.paper.stats) learn.paper = emptyPaper();
+        learn.paper.open = learn.paper.open || [];
+        const s = learn.paper.stats;
+        s.wins = s.wins || 0; s.losses = s.losses || 0; s.netPct = s.netPct || 0;
+        s.grossWin = s.grossWin || 0; s.grossLoss = s.grossLoss || 0;
+        s.closed = s.closed || 0; s.byTier = s.byTier || {}; s.history = s.history || [];
       }
     } catch {}
     learnLoaded = true;
@@ -1572,6 +1831,67 @@
     return computeConfluence(slice, { pats, fvgs, levels, sweeps, vp, fc, lastPrice });
   }
 
+  // ── Multi-timeframe confluence ──────────────────────────────────────────────
+  // Compute the confluence verdict on several timeframes at once and report
+  // whether they AGREE. Alignment across timeframes is far more meaningful than
+  // any single chart: a 1m bullish read that's also bullish on 5m/15m/1d is a
+  // real trend; one that fights the higher timeframes is likely just noise.
+  const MTF_LADDER = ['5m', '15m', '60m', '1d'];   // higher TFs give the context
+  let _mtfCache = {};   // `${sym}|${itv}` → { ts, result } (short cache, fetches are costly)
+
+  function mtfConfluenceOnCandles(cs) {
+    if (!cs || cs.length < 30) return null;
+    const c = confluenceAt(cs, cs.length - 1);
+    if (!c) return null;
+    return { dir: c.dir, score: c.score, tier: conflTier(c.score) };
+  }
+
+  // Fetch the higher timeframes (those above the current one), compute their
+  // confluence, and return an alignment summary. Cached for 90s per symbol.
+  async function getMultiTimeframe(sym, currentItv, currentResult) {
+    const key = `${sym}|${currentItv}`;
+    const cached = _mtfCache[key];
+    if (cached && Date.now() - cached.ts < 90000) return cached.result;
+
+    // which timeframes to check: the current one (from loaded candles) + the
+    // ladder entries that are HIGHER than it (context above the trading TF)
+    const order = ['1m', '5m', '15m', '60m', '1d'];
+    const curIdx = order.indexOf(currentItv);
+    const higher = MTF_LADDER.filter(tf => order.indexOf(tf) > curIdx);
+
+    const rows = [];
+    if (currentResult) rows.push({ itv: currentItv, ...currentResult, current: true });
+
+    await Promise.all(higher.map(async (tf) => {
+      try {
+        const res = await fetch(`/chart?symbol=${encodeURIComponent(sym)}&interval=${tf}`);
+        const json = await res.json();
+        if (json.ok && json.candles && json.candles.length >= 30) {
+          const m = mtfConfluenceOnCandles(json.candles);
+          if (m) rows.push({ itv: tf, ...m });
+        }
+      } catch { /* this TF unavailable — skip */ }
+    }));
+
+    // order rows low→high timeframe for display
+    rows.sort((a, b) => order.indexOf(a.itv) - order.indexOf(b.itv));
+
+    // alignment score: how many agree with the current TF's direction?
+    const curDir = currentResult ? currentResult.dir : (rows[0] && rows[0].dir);
+    const directional = rows.filter(r => r.dir !== 'neutral');
+    const agreeing = directional.filter(r => r.dir === curDir).length;
+    const result = {
+      rows,
+      curDir,
+      agree: agreeing,
+      total: directional.length,
+      allAgree: directional.length >= 2 && agreeing === directional.length,
+      conflict: directional.some(r => r.dir !== 'neutral' && curDir !== 'neutral' && r.dir !== curDir),
+    };
+    _mtfCache[key] = { ts: Date.now(), result };
+    return result;
+  }
+
   // Confluence tier from an absolute score — coarse buckets so the system can
   // learn whether STRONGER agreement actually wins more often than weak.
   function conflTier(score) {
@@ -1579,10 +1899,29 @@
     return a >= 60 ? 'strong' : a >= 35 ? 'moderate' : 'weak';
   }
 
+  // Classify a bar's timestamp into a US-market session bucket. The market
+  // behaves very differently across the day: the open is volatile and trend-
+  // setting, midday drifts and chops, the close brings a second volatility
+  // burst. Learning each session separately lets the engine tell you a setup
+  // that works at 9:45 may be a trap at noon. Times are US Eastern.
+  function sessionOf(timeSec) {
+    // convert unix seconds → ET hour:minute. ET = UTC-5 (EST) / -4 (EDT).
+    // We approximate with a fixed -4 (EDT, the active-trading half of the year);
+    // a 30-min boundary tolerance makes the exact offset non-critical.
+    const d = new Date(timeSec * 1000);
+    const etHour = (d.getUTCHours() - 4 + 24) % 24;
+    const mins = etHour * 60 + d.getUTCMinutes();
+    const OPEN = 9 * 60 + 30, MIDDAY = 11 * 60, LATE = 14 * 60, CLOSE = 16 * 60;
+    if (mins < OPEN - 30) return 'premarket';
+    if (mins < MIDDAY) return 'open';        // 9:30–11:00, the volatile first 90m
+    if (mins < LATE) return 'midday';        // 11:00–14:00, the lunch drift
+    if (mins < CLOSE + 15) return 'close';   // 14:00–16:00, the closing burst
+    return 'afterhours';
+  }
+
   // Self-learning for the confluence meter itself: the combined directional
-  // call is logged and graded 3 bars later, bucketed by its strength tier.
-  // This tells us how much to trust a "strong" reading vs a "weak" one —
-  // the meter critiquing its own track record.
+  // call is logged and graded 3 bars later, bucketed by its strength tier AND
+  // by the market session, so we learn how reliable each tier is at each time.
   let _conflBackfilled = new Set(); // `${sym}|${itv}` already history-graded
 
   function recordAndScoreConfluence(cs, confl, secs) {
@@ -1590,19 +1929,19 @@
     const dir = confl.score > 0 ? 1 : -1;
     const tier = conflTier(confl.score);
     const last = cs[cs.length - 1];
+    const sess = chartInterval === '1d' ? null : sessionOf(last.time); // intraday only
     const key = `${chartSymbol}|${chartInterval}|${last.time}|CONF-${tier}`;
     if (!last.thin && !learn.done.includes(key) && !learn.open.some(o => o.k === key)) {
-      // live-edge call → open prediction, graded when 3 bars mature
+      // live-edge call → open prediction, graded when 3 bars mature.
+      // `stat2` carries the session-qualified bucket so both get graded.
       learn.open.push({ k: key, sym: chartSymbol, itv: chartInterval, dir,
-                        stat: tier, bucket: 'confluence', ref: last.close,
+                        stat: tier, stat2: sess ? `${tier}@${sess}` : null,
+                        bucket: 'confluence', ref: last.close,
                         evalT: last.time + EVAL_BARS * secs });
       trimLearn();
       saveLearning();
     }
 
-    // Grade history fast — but only ONCE per symbol/interval (it's expensive:
-    // it replays all detectors at each past bar). Re-running every refresh
-    // would just re-hit the dedupe guard, so skip it after the first pass.
     const backfillKey = `${chartSymbol}|${chartInterval}`;
     if (_conflBackfilled.has(backfillKey)) return;
     _conflBackfilled.add(backfillKey);
@@ -1616,14 +1955,151 @@
       const hk = `${chartSymbol}|${chartInterval}|${cs[i].time}|CONF-${ht}`;
       if (learn.done.includes(hk) || learn.open.some(o => o.k === hk)) continue;
       const win = scoreOutcome(hd, cs[i].close, cs[i + EVAL_BARS].close);
-      if (win !== null) { bumpStat(learn.confluence, ht, win); graded = true; }
+      if (win !== null) {
+        bumpStat(learn.confluence, ht, win);
+        const hs = chartInterval === '1d' ? null : sessionOf(cs[i].time);
+        if (hs) bumpStat(learn.confluence, `${ht}@${hs}`, win); // session-qualified
+        graded = true;
+      }
       learn.done.push(hk);
     }
     if (graded) { trimLearn(); saveLearning(); }
   }
 
-  function recordTrendPrediction(cs, slope, secs) {
-    if (!learnLoaded || !slope || !cs.length) return;
+  // ── Live paper-trade scorecard ──────────────────────────────────────────────
+  // The most trustworthy signal: when ANALYZE is on and confluence fires a
+  // tradeable bullish setup at the LIVE edge (the latest bar), we open a paper
+  // trade with the same entry/stop/target rules as the backtester — then grade
+  // it FORWARD against what price actually does. No hindsight, no curve-fitting:
+  // the outcome literally hasn't happened yet when the trade is logged.
+  function openPaperTradeIfSignal(cs) {
+    if (!learnLoaded || cs.length < 35) return;
+    const i = cs.length - 1;                 // the live edge
+    const bar = cs[i];
+    if (bar.thin || bar.gapBefore) return;    // don't open on junk bars
+    // de-dupe: one open paper trade per symbol+interval at a time
+    const exists = learn.paper.open.some(t => t.sym === chartSymbol && t.itv === chartInterval);
+    if (exists) return;
+
+    const confl = confluenceAt(cs, i);
+    if (!confl || confl.dir !== 'bullish') return;
+    const params = strategyParams();          // learner's optimised entry/stop/target
+    if (confl.score < params.entryScore) return;
+    // profitability gate: only take it if this tier has a non-losing learned record
+    const tier = conflTier(confl.score);
+    const tr = learn.confluence && learn.confluence[tier];
+    const tierN = tr ? tr.w + tr.l : 0;
+    if (tierN >= 5 && tr.w / tierN < 0.5) return;
+
+    const atr = atrAt(cs, i);
+    if (!atr || atr <= 0) return;
+    const entry = bar.close;
+    const trade = {
+      id: `${chartSymbol}|${chartInterval}|${bar.time}`,
+      sym: chartSymbol, itv: chartInterval, name: chartName || chartSymbol,
+      entryTime: bar.time, entry,
+      stop: entry - params.stopATR * atr,
+      target: entry + params.targetATR * atr,
+      timeStopBars: params.timeStop,
+      tier, score: confl.score, openedAt: Date.now(),
+    };
+    if (trade.stop <= 0 || trade.stop >= entry) return;
+    if (learn.done.includes('PT:' + trade.id)) return; // already traded this bar before
+    learn.paper.open.push(trade);
+    learn.done.push('PT:' + trade.id);
+    trimLearn(); saveLearning();
+  }
+
+  // Grade open paper trades for `sym` using fresh candles `cs` (already loaded
+  // for the current chart). Checks whether stop/target/time-stop was hit since
+  // entry. Called free on every chart open; a background sweep handles the rest.
+  function gradePaperTrades(sym, itv, cs) {
+    if (!learnLoaded || !cs.length) return;
+    let changed = false;
+    const secsPer = intervalSecsFor(itv);
+    learn.paper.open = learn.paper.open.filter(t => {
+      if (t.sym !== sym || t.itv !== itv) return true;        // not this chart
+      const entryIdx = cs.findIndex(c => c.time >= t.entryTime);
+      if (entryIdx < 0) return true;                          // entry not in view yet
+      let outcome = null, exitPrice = null, exitTime = null;
+      for (let j = entryIdx + 1; j < cs.length; j++) {
+        // don't grade across a session boundary — wait for clean continuation
+        if (cs[j].gapBefore) break;
+        if (cs[j].low <= t.stop)  { outcome = 'loss'; exitPrice = t.stop;  exitTime = cs[j].time; break; }
+        if (cs[j].high >= t.target){ outcome = 'win';  exitPrice = t.target; exitTime = cs[j].time; break; }
+        if (j - entryIdx >= t.timeStopBars) {
+          exitPrice = cs[j].close; exitTime = cs[j].time;
+          outcome = exitPrice > t.entry ? 'win' : 'loss'; break;
+        }
+      }
+      if (!outcome) return true;                              // still open — keep it
+      const FEE = 0.0005, SLIP = 0.0005;
+      const fill = exitPrice * (1 - SLIP);
+      const pct = (fill - t.entry) / t.entry * 100 - FEE * 200; // ~round-trip cost
+      // accumulate into the forward scorecard
+      const sc = learn.paper.stats;
+      if (outcome === 'win') { sc.wins++; sc.grossWin += Math.max(0, pct); }
+      else { sc.losses++; sc.grossLoss += Math.abs(Math.min(0, pct) || pct); }
+      sc.netPct += pct;
+      sc.byTier[t.tier] = sc.byTier[t.tier] || { w: 0, l: 0 };
+      outcome === 'win' ? sc.byTier[t.tier].w++ : sc.byTier[t.tier].l++;
+      sc.closed = (sc.closed || 0) + 1;
+      sc.history = sc.history || [];
+      sc.history.push({ sym: t.sym, itv: t.itv, pct: +pct.toFixed(2), outcome,
+                        entry: t.entry, exit: fill, openedAt: t.openedAt, closedAt: Date.now() });
+      if (sc.history.length > 200) sc.history = sc.history.slice(-200);
+      changed = true;
+      return false;                                           // remove from open
+    });
+    if (changed) { trimLearn(); saveLearning(); }
+  }
+
+  // Background sweep: grade open paper trades on OTHER symbols by fetching their
+  // recent candles, so trades resolve even if you never reopen that chart.
+  // Capped and throttled so it never hammers Yahoo.
+  let _lastPaperSweep = 0;
+  async function sweepPaperTrades() {
+    if (!learnLoaded) return;
+    if (Date.now() - _lastPaperSweep < 5 * 60 * 1000) return;  // at most every 5 min
+    _lastPaperSweep = Date.now();
+    // unique sym/itv among open trades, minus the current chart (already graded)
+    const pairs = [...new Set(learn.paper.open
+      .filter(t => !(t.sym === chartSymbol && t.itv === chartInterval))
+      .map(t => `${t.sym}|${t.itv}`))].slice(0, 6);          // cap at 6 per sweep
+    for (const pair of pairs) {
+      const [sym, itv] = pair.split('|');
+      try {
+        const res = await fetch(`/chart?symbol=${encodeURIComponent(sym)}&interval=${itv}`);
+        const json = await res.json();
+        if (json.ok && json.candles && json.candles.length) gradePaperTrades(sym, itv, json.candles);
+      } catch { /* offline or symbol gone — try again next sweep */ }
+    }
+  }
+
+  // Render the forward scorecard for the ANALYSIS panel.
+  function paperScorecardHtml() {
+    const s = learn.paper && learn.paper.stats;
+    const openN = learn.paper ? learn.paper.open.length : 0;
+    if (!s || (s.closed === 0 && openN === 0)) {
+      return `<div class="pp-row" title="${esc(SCORECARD_INFO)}" style="margin-top:4px;border-top:1px solid var(--border);padding-top:4px;color:var(--muted);font-size:9px">📋 Live scorecard: no paper trades yet — opens one when a strong setup fires, grades it forward. Build over days.</div>`;
+    }
+    const total = s.wins + s.losses;
+    const col = s.netPct >= 0 ? 'var(--green)' : 'var(--red)';
+    const pf = s.grossLoss > 0 ? (s.grossWin / s.grossLoss).toFixed(2) : (s.grossWin > 0 ? '∞' : '—');
+    const winRate = total ? Math.round(s.wins / total * 100) : 0;
+    return `<div class="pp-row" title="${esc(SCORECARD_INFO)}" style="margin-top:4px;border-top:1px solid var(--border);padding-top:4px">
+      <span style="color:#3b82f6;font-weight:600">📋 LIVE SCORECARD</span>
+      <span style="color:var(--text-dim)"> (real forward record)</span><br>
+      ${total > 0
+        ? `<span style="color:${col};font-weight:600">${s.netPct >= 0 ? '+' : ''}${s.netPct.toFixed(1)}%</span>
+           <span style="color:var(--text-dim)">over ${total} closed · ${winRate}% win · PF ${pf}</span>`
+        : '<span style="color:var(--text-dim)">none closed yet</span>'}
+      ${openN ? `<span style="color:var(--muted)"> · ${openN} open</span>` : ''}</div>`;
+  }
+
+  const SCORECARD_INFO = 'The live scorecard is the most trustworthy number in the app. When a strong setup fires at the current bar, the app opens a paper trade (entry, stop, target) and grades it FORWARD — against price action that hadn\'t happened yet. No hindsight, no curve-fitting, costs included. It builds slowly (one trade per strong setup) but it is the real test of whether the strategy works. Give it days to weeks of regular use.';
+
+  function recordTrendPrediction(cs, slope, secs) {    if (!learnLoaded || !slope || !cs.length) return;
     const last = cs[cs.length - 1];
     if (last.thin) return; // a thin overnight print isn't a real trend reading
     const key = `${chartSymbol}|${chartInterval}|${last.time}|TREND`;
@@ -1661,6 +2137,8 @@
           const stat = o.stat || o.name || o.itv;
           if (!learn[bucket]) learn[bucket] = {};
           bumpStat(learn[bucket], stat, win);
+          // session-qualified variant (e.g. confluence "strong@open"), if present
+          if (o.stat2) bumpStat(learn[bucket], o.stat2, win);
         }
       }
       learn.done.push(o.k); // mark resolved either way so it isn't re-queued
@@ -1991,6 +2469,9 @@
     confluence: 'Confluence score — how many independent signals AGREE right now (patterns, trend, levels, FVGs, sweeps, volume profile), weighted by each one\'s learned reliability. The meter ALSO grades itself: it tracks how often strong / moderate / weak confluence calls actually played out, so over time you see whether a high reading is worth trusting. High agreement is more meaningful than any single signal — but still not a guarantee.',
     context: 'Context tags on a pattern: volume regime (hiV/mdV/loV), trend alignment (wT=with trend, aT=against), and VWAP side (wV/aV). The system learns each pattern\'s win rate separately in each context.',
     gapguard: 'Session-boundary protection. When the market closes and reopens (overnight, weekend, or pre/post-market), price can jump across the gap. Those jumps aren\'t real moves any signal predicted, so the learner SKIPS grading any prediction whose outcome window crosses a gap — and ignores thin, low-volume overnight prints. The bars stay visible; they just don\'t pollute the win/loss stats.',
+    mtf: 'Multi-timeframe confluence: the same confluence verdict computed on higher timeframes (5m, 15m, 1h, daily) alongside the one you\'re viewing. When they all point the same way, the setup is far stronger — you\'re trading with the larger trend, not against it. When a higher timeframe disagrees, your signal is fighting the bigger picture and tends to fail more often. ▲ = bullish, ▼ = bearish, · = neutral on that timeframe. The underlined one is your current chart.',
+    session: 'Time-of-day learning: the market behaves differently across the session — the open (9:30–11:00 ET) is volatile and trend-setting, midday (11:00–14:00) drifts and chops, and the close (14:00–16:00) brings a second volatility burst. The engine now tracks how often each confluence tier actually works in each session, so a "strong" reading that\'s reliable at the open but weak at midday gets flagged. Green = this tier performs better than usual at this time; red = worse, trade more cautiously.',
+    diverge: 'Why the trend forecast and confluence can disagree: the FORECAST is pure trend extrapolation — it projects the existing move forward. CONFLUENCE is a weighted vote across six signals, several of which are mean-reversion (price at resistance, an unfilled gap below, a volume-profile magnet, a liquidity sweep) and naturally point AGAINST a stretched trend, anticipating a pullback. So "trend up, confluence bearish" usually means: the move is up, but the evidence says it may be due to bend. Neither is wrong — they answer different questions (where it\'s going vs. whether it\'s about to turn).',
   };
 
   // ── Confluence: do the independent layers AGREE on a direction right now? ────
@@ -2005,41 +2486,42 @@
     };
     const votes = [];
 
-    // trend vote
+    // trend vote (TREND-FOLLOWING)
     if (fc && fc.slope) {
       const w = rel('trend', chartInterval);
-      votes.push({ src: 'Trend', dir: fc.slope > 0 ? 1 : -1, weight: w * Math.min(1, Math.abs(fc.r2)) });
+      votes.push({ src: 'Trend', dir: fc.slope > 0 ? 1 : -1, weight: w * Math.min(1, Math.abs(fc.r2)), type: 'trend' });
     }
-    // most-recent pattern vote (context-weighted)
+    // most-recent pattern vote (context-weighted) — bullish/bearish patterns are
+    // reversal-flavoured, continuation patterns trend-flavoured; treat as 'signal'
     const lastPat = pats[pats.length - 1];
     if (lastPat && lastPat.dir !== 0) {
       const ctx = ctxTag(cs, lastPat.i, lastPat.dir);
       const w = rel('patterns', ctx ? `${lastPat.name}|${ctx}` : lastPat.name, rel('patterns', lastPat.name));
-      votes.push({ src: lastPat.name, dir: lastPat.dir, weight: w });
+      votes.push({ src: lastPat.name, dir: lastPat.dir, weight: w, type: 'signal' });
     }
-    // nearest level vote: near support → bullish, near resistance → bearish
+    // nearest level vote (MEAN-REVERSION: expect a reaction off the level)
     const nearSup = levels.filter(L => L.kind === 'sup' && L.price <= lastPrice).sort((a,b)=>b.price-a.price)[0];
     const nearRes = levels.filter(L => L.kind === 'res' && L.price >= lastPrice).sort((a,b)=>a.price-b.price)[0];
     if (nearSup && (lastPrice - nearSup.price) / lastPrice < 0.01) {
-      votes.push({ src: 'At support', dir: 1, weight: rel('levels', 'sup') });
+      votes.push({ src: 'At support', dir: 1, weight: rel('levels', 'sup'), type: 'reversion' });
     }
     if (nearRes && (nearRes.price - lastPrice) / lastPrice < 0.01) {
-      votes.push({ src: 'At resistance', dir: -1, weight: rel('levels', 'res') });
+      votes.push({ src: 'At resistance', dir: -1, weight: rel('levels', 'res'), type: 'reversion' });
     }
-    // unfilled FVG pull: price gets drawn toward the gap
+    // unfilled FVG pull (MEAN-REVERSION: price drawn back to the gap)
     const lastGap = fvgs[fvgs.length - 1];
     if (lastGap) {
       votes.push({ src: 'FVG pull', dir: lastPrice < lastGap.mid ? 1 : -1,
-                   weight: rel('fvg', lastGap.dir > 0 ? 'bullish' : 'bearish') });
+                   weight: rel('fvg', lastGap.dir > 0 ? 'bullish' : 'bearish'), type: 'reversion' });
     }
-    // recent sweep vote (reversal direction)
+    // recent sweep vote (MEAN-REVERSION: reversal of the swept move)
     const lastSweep = sweeps[sweeps.length - 1];
     if (lastSweep && lastSweep.i >= cs.length - 3) {
-      votes.push({ src: 'Sweep', dir: lastSweep.dir, weight: rel('sweeps', lastSweep.kind) });
+      votes.push({ src: 'Sweep', dir: lastSweep.dir, weight: rel('sweeps', lastSweep.kind), type: 'reversion' });
     }
-    // volume-profile POC magnet
+    // volume-profile POC magnet (MEAN-REVERSION: pull back to high-volume price)
     if (vp) {
-      votes.push({ src: 'POC magnet', dir: lastPrice < vp.poc ? 1 : -1, weight: rel('poc', 'pull') });
+      votes.push({ src: 'POC magnet', dir: lastPrice < vp.poc ? 1 : -1, weight: rel('poc', 'pull'), type: 'reversion' });
     }
 
     if (!votes.length) return null;
@@ -2049,6 +2531,384 @@
     const agree = votes.filter(v => Math.sign(v.dir) === Math.sign(net)).length;
     return { score, votes, agree, total: votes.length,
              dir: net > 0 ? 'bullish' : net < 0 ? 'bearish' : 'neutral' };
+  }
+
+  // ── Backtest engine ─────────────────────────────────────────────────────────
+  // Replays the chart bar-by-bar with NO lookahead: at each bar it asks what the
+  // analysis suite would have said using only data available then (confluenceAt),
+  // opens a simulated LONG when the combined picture is bullish enough, and exits
+  // on a stop-loss, profit target, or time stop. Stops/targets are ATR-based with
+  // multipliers the system OPTIMISES from past results.
+
+  function atrAt(cs, i, period = 14) {
+    let sum = 0, n = 0;
+    for (let j = Math.max(1, i - period + 1); j <= i; j++) {
+      sum += Math.max(
+        cs[j].high - cs[j].low,
+        Math.abs(cs[j].high - cs[j - 1].close),
+        Math.abs(cs[j].low - cs[j - 1].close)
+      );
+      n++;
+    }
+    return n ? sum / n : 0;
+  }
+
+  // The learner's current best stop/target ATR multipliers (per timeframe).
+  function strategyParams() {
+    const s = learn.strategy[chartInterval];
+    return {
+      entryScore: s?.entryScore ?? 45,
+      stopATR:    s?.stopATR ?? 1.5,
+      targetATR:  s?.targetATR ?? 3.0,
+      timeStop:   s?.timeStop ?? 20,
+      wins: s?.wins ?? 0, losses: s?.losses ?? 0, pnl: s?.pnl ?? 0,
+    };
+  }
+
+  // One backtest pass over candles `cs`. Long-only. Pure function.
+  // Balance compounds (position = 95% of running balance); a fee+slippage
+  // estimate is charged on entry and exit so results stay honest.
+  function backtest(cs, params) {
+    const { entryScore, stopATR, targetATR, timeStop } = params;
+    const FEE = 0.0005, SLIP = 0.0005; // 0.05% each per side
+    const START = 10000;
+    const trades = [];
+    let pos = null, balance = START, peak = START, maxDD = 0;
+    for (let i = 30; i < cs.length; i++) {
+      const bar = cs[i];
+      const dirty = bar.gapBefore || bar.thin;
+      if (pos) {
+        let exitPrice = null, reason = null;
+        if (bar.low <= pos.stop) { exitPrice = pos.stop; reason = 'stop'; }
+        else if (bar.high >= pos.target) { exitPrice = pos.target; reason = 'target'; }
+        else if (i - pos.entryIdx >= timeStop) { exitPrice = bar.close; reason = 'time'; }
+        if (exitPrice !== null) {
+          const fill = exitPrice * (1 - SLIP);            // slippage against us
+          const gross = (fill - pos.entry) * pos.shares;
+          const fees = (pos.entry * pos.shares + fill * pos.shares) * FEE;
+          const pnl = gross - fees;
+          balance += pnl;
+          const ret = (fill - pos.entry) / pos.entry * 100;
+          peak = Math.max(peak, balance);
+          maxDD = Math.max(maxDD, (peak - balance) / peak * 100);
+          trades.push({ ...pos, exitIdx: i, exitTime: bar.time, exitPrice: fill, reason, ret, pnl });
+          pos = null;
+        }
+      }
+      if (!pos && !dirty && i < cs.length - 3) {
+        const c = confluenceAt(cs, i);
+        if (c && c.dir === 'bullish' && c.score >= entryScore) {
+          const atr = atrAt(cs, i);
+          if (atr > 0) {
+            const entry = bar.close * (1 + SLIP);         // slippage on entry fill
+            const shares = (balance * 0.95) / entry;       // compounds with balance
+            pos = { entryIdx: i, entryTime: bar.time, entry, shares,
+                    stop: entry - stopATR * atr, target: entry + targetATR * atr, score: c.score };
+          }
+        }
+      }
+    }
+    if (pos) {
+      const last = cs[cs.length - 1];
+      const fill = last.close * (1 - SLIP);
+      const gross = (fill - pos.entry) * pos.shares;
+      const fees = (pos.entry * pos.shares + fill * pos.shares) * FEE;
+      const pnl = gross - fees;
+      balance += pnl;
+      const ret = (fill - pos.entry) / pos.entry * 100;
+      trades.push({ ...pos, exitIdx: cs.length - 1, exitTime: last.time,
+                    exitPrice: fill, reason: 'open', ret, pnl });
+    }
+    const wins = trades.filter(t => t.pnl > 0);
+    const losses = trades.filter(t => t.pnl <= 0);
+    const grossWin = wins.reduce((a, t) => a + t.pnl, 0);
+    const grossLoss = Math.abs(losses.reduce((a, t) => a + t.pnl, 0));
+    return {
+      trades, balance, startBalance: START,
+      equity: (balance - START) / START * 100,   // net % return on starting balance
+      netPnl: balance - START, maxDD, n: trades.length,
+      winRate: trades.length ? wins.length / trades.length : 0,
+      avgWin: wins.length ? grossWin / wins.length : 0,
+      avgLoss: losses.length ? grossLoss / losses.length : 0,
+      profitFactor: grossLoss > 0 ? grossWin / grossLoss : (grossWin > 0 ? Infinity : 0),
+    };
+  }
+
+  // Grid-search stop/target/entry params against this chart's history; keep the
+  // best by profit factor (min 5 trades). Accumulates across charts.
+  function optimiseStrategy(cs) {
+    const entryGrid = [35, 45, 60], stopGrid = [1.0, 1.5, 2.0],
+          targetGrid = [2.0, 3.0, 4.0], timeGrid = [15, 25];
+    let best = null;
+    for (const entryScore of entryGrid)
+      for (const stopATR of stopGrid)
+        for (const targetATR of targetGrid)
+          for (const timeStop of timeGrid) {
+            const r = backtest(cs, { entryScore, stopATR, targetATR, timeStop });
+            if (r.n < 5) continue;
+            const pf = r.profitFactor === Infinity ? 99 : r.profitFactor;
+            const key = pf * 100 + r.equity;
+            if (!best || key > best.key)
+              best = { key, entryScore, stopATR, targetATR, timeStop,
+                       n: r.n, equity: r.equity, profitFactor: pf, winRate: r.winRate };
+          }
+    if (best) {
+      const prev = learn.strategy[chartInterval] || {};
+      learn.strategy[chartInterval] = {
+        entryScore: best.entryScore, stopATR: best.stopATR,
+        targetATR: best.targetATR, timeStop: best.timeStop,
+        wins: (prev.wins || 0) + Math.round(best.n * best.winRate),
+        losses: (prev.losses || 0) + Math.round(best.n * (1 - best.winRate)),
+        pnl: +((prev.pnl || 0) + best.equity).toFixed(2),
+        lastOpt: Date.now(),
+      };
+      trimLearn();
+      saveLearning();
+    }
+    return best;
+  }
+
+  // ── Backtest UI ─────────────────────────────────────────────────────────────
+  let backtestSeries = [];   // entry/exit connector lines
+  let backtestOn = false;
+
+  function clearBacktest() {
+    if (candleSeries) { try { candleSeries.setMarkers([]); } catch {} }
+    for (const s of backtestSeries) { try { lwChart.removeSeries(s); } catch {} }
+    backtestSeries = [];
+    const p = document.querySelector('#chartContainer .backtest-panel');
+    if (p) p.remove();
+    backtestOn = false;
+    document.getElementById('backtestBtn').classList.remove('active');
+  }
+
+  const BT_WF_INFO = 'Walk-forward / out-of-sample test: the strategy is tuned on the first 70% of the history, then those settings are FROZEN and tested on the last 30% — data the tuning never saw. This is the honest number, because it can\'t be curve-fit. If the optimistic figure is great but this one is poor, the strategy is overfit and wouldn\'t have worked live. Trust this number over the optimistic one.';
+
+  // Walk-forward: optimise stop/target/entry on the first `split` fraction of  // history (in-sample), then run those FIXED params on the held-out remainder
+  // (out-of-sample). The out-of-sample result is the honest one — it measures
+  // how the tuned rule did on data it never saw during tuning.
+  function walkForward(cs, split = 0.7) {
+    if (cs.length < 80) return null;            // too short to split meaningfully
+    const cut = Math.floor(cs.length * split);
+    const inSample = cs.slice(0, cut);
+    // grid-search on in-sample only (don't persist — this is a test, not learning)
+    const entryGrid = [35, 45, 60], stopGrid = [1.0, 1.5, 2.0],
+          targetGrid = [2.0, 3.0, 4.0], timeGrid = [15, 25];
+    let best = null;
+    for (const entryScore of entryGrid)
+      for (const stopATR of stopGrid)
+        for (const targetATR of targetGrid)
+          for (const timeStop of timeGrid) {
+            const r = backtest(inSample, { entryScore, stopATR, targetATR, timeStop });
+            if (r.n < 4) continue;
+            const pf = r.profitFactor === Infinity ? 99 : r.profitFactor;
+            const key = pf * 100 + r.equity;
+            if (!best || key > best.key) best = { key, entryScore, stopATR, targetATR, timeStop };
+          }
+    if (!best) return null;
+    const params = { entryScore: best.entryScore, stopATR: best.stopATR,
+                     targetATR: best.targetATR, timeStop: best.timeStop };
+    // out-of-sample: run the chosen params on the WHOLE series, then count only
+    // trades that opened in the held-out tail (entryIdx >= cut)
+    const full = backtest(cs, params);
+    const oosTrades = full.trades.filter(t => t.entryIdx >= cut);
+    const wins = oosTrades.filter(t => t.pnl > 0);
+    const grossWin = wins.reduce((a, t) => a + t.pnl, 0);
+    const grossLoss = Math.abs(oosTrades.filter(t => t.pnl <= 0).reduce((a, t) => a + t.pnl, 0));
+    const oosNetPct = oosTrades.reduce((a, t) => a + t.ret, 0);
+    return {
+      params,
+      oos: {
+        n: oosTrades.length,
+        netPct: oosNetPct,
+        winRate: oosTrades.length ? wins.length / oosTrades.length : 0,
+        profitFactor: grossLoss > 0 ? grossWin / grossLoss : (grossWin > 0 ? Infinity : 0),
+      },
+    };
+  }
+
+  // ── Position-size calculator ────────────────────────────────────────────────
+  // shares = (account × risk%) ÷ (entry − stop). This caps the loss on a stop-out
+  // to exactly the % of the account you're willing to risk — the core of survival.
+  let sizerOn = false;
+
+  function sizerSettings() {
+    let acct = parseFloat(localStorage.getItem('sizer-acct'));
+    let risk = parseFloat(localStorage.getItem('sizer-risk'));
+    if (!Number.isFinite(acct) || acct <= 0) acct = 10000;
+    if (!Number.isFinite(risk) || risk <= 0) risk = 1;
+    return { acct, risk };
+  }
+
+  function toggleSizer() {
+    sizerOn = !sizerOn;
+    document.getElementById('sizerBtn').classList.toggle('active', sizerOn);
+    if (sizerOn) openSizer(); else closeSizer();
+  }
+
+  function closeSizer() {
+    sizerOn = false;
+    document.getElementById('sizerBtn').classList.remove('active');
+    const p = document.querySelector('#chartContainer .sizer-panel');
+    if (p) p.remove();
+  }
+
+  function openSizer() {
+    closeSizer(); sizerOn = true;
+    document.getElementById('sizerBtn').classList.add('active');
+    const cs = lastCandles;
+    const price = cs.length ? cs[cs.length - 1].close : 0;
+    let defaultStop = price * 0.98;
+    if (cs.length > 15) {
+      const atr = atrAt(cs, cs.length - 1);
+      if (atr > 0) defaultStop = +(price - 1.5 * atr).toFixed(price < 1 ? 4 : 2);
+    }
+    const { acct, risk } = sizerSettings();
+    const cur = chartCurPrefix || currency || '$';
+    const panel = document.createElement('div');
+    panel.className = 'sizer-panel';
+    panel.innerHTML = `
+      <div class="sz-title"><span>⊞ POSITION SIZE</span><span class="sz-close" onclick="closeSizer()">✕</span></div>
+      <div class="sz-row"><label title="Your total trading account balance.">Account ${cur}</label>
+        <input id="szAcct" type="number" min="1" step="100" value="${acct}"></div>
+      <div class="sz-row"><label title="How much of the account you're willing to lose if this trade hits its stop. 1–2% is the common discipline; more than that and a losing streak can wreck you.">Risk %</label>
+        <input id="szRisk" type="number" min="0.1" max="100" step="0.1" value="${risk}"></div>
+      <div class="sz-row"><label title="Your intended entry price (defaults to the latest price).">Entry ${cur}</label>
+        <input id="szEntry" type="number" min="0" step="0.01" value="${price.toFixed(price < 1 ? 4 : 2)}"></div>
+      <div class="sz-row"><label title="Where you'll cut the loss. Default is 1.5×ATR below entry — the volatility-based stop. Set it at a level that invalidates your idea.">Stop ${cur}</label>
+        <input id="szStop" type="number" min="0" step="0.01" value="${defaultStop}"></div>
+      <div class="sz-out" id="szOut"></div>`;
+    document.getElementById('chartContainer').appendChild(panel);
+    for (const id of ['szAcct', 'szRisk', 'szEntry', 'szStop']) {
+      panel.querySelector('#' + id).addEventListener('input', recalcSizer);
+    }
+    recalcSizer();
+  }
+
+  function recalcSizer() {
+    const g = (id) => parseFloat(document.getElementById(id)?.value);
+    const acct = g('szAcct'), risk = g('szRisk'), entry = g('szEntry'), stop = g('szStop');
+    const out = document.getElementById('szOut');
+    if (!out) return;
+    if (Number.isFinite(acct) && acct > 0) localStorage.setItem('sizer-acct', acct);
+    if (Number.isFinite(risk) && risk > 0) localStorage.setItem('sizer-risk', risk);
+    const cur = chartCurPrefix || currency || '$';
+    if (![acct, risk, entry, stop].every(Number.isFinite) || entry <= 0) {
+      out.innerHTML = '<div class="sz-sub">Enter values above…</div>'; return;
+    }
+    const perShareRisk = entry - stop;
+    if (perShareRisk <= 0) {
+      out.innerHTML = '<div class="sz-warn">Stop must be below entry for a long trade.</div>'; return;
+    }
+    const riskAmt = acct * (risk / 100);
+    let shares = Math.floor(riskAmt / perShareRisk);
+    let cost = shares * entry;
+    let capped = false;
+    if (cost > acct) {
+      shares = Math.floor(acct / entry); cost = shares * entry; capped = true;
+    }
+    const actualRisk = shares * perShareRisk;
+    const stopPct = (perShareRisk / entry) * 100;
+    const fmt = (n) => cur + Math.round(n).toLocaleString();
+    out.innerHTML = `
+      <div><span class="sz-big">${shares.toLocaleString()}</span> <span class="sz-sub">shares</span></div>
+      <div class="sz-sub">
+        Position cost: ${fmt(cost)} (${(cost/acct*100).toFixed(0)}% of account)<br>
+        Risk if stopped: ${fmt(actualRisk)} (${(actualRisk/acct*100).toFixed(2)}% of account)<br>
+        Stop distance: ${stopPct.toFixed(2)}% below entry
+      </div>
+      ${capped ? '<div class="sz-warn">Capped: account cannot fund the full risk-based size. Your stop is too wide for this risk % — widen the stop or accept fewer shares.</div>' : ''}`;
+  }
+
+  async function runBacktest() {
+    if (!lwChart || !candleSeries || lastCandles.length < 40) {
+      setStatus('error', 'Not enough chart history to backtest');
+      return;
+    }
+    if (backtestOn) { clearBacktest(); return; }
+    if (!learnLoaded) await loadLearning();
+    backtestOn = true;
+    document.getElementById('backtestBtn').classList.add('active');
+    // turn off the analysis overlay so the two don't fight over markers
+    if (patternsOn) { patternsOn = false; document.getElementById('patternBtn').classList.remove('active'); clearPatterns(); }
+
+    // Use the accumulated candle history (grows over time) if it's longer than
+    // the live window — gives the backtest a bigger, more trustworthy sample.
+    let cs = lastCandles;
+    try {
+      const res = await fetch(`/chart?symbol=${encodeURIComponent(chartSymbol)}&interval=${chartInterval}&hist=1`);
+      const json = await res.json();
+      if (json.ok && json.candles && json.candles.length > cs.length) {
+        cs = json.candles;
+        setStatus('live', `Backtesting on ${cs.length} stored bars…`);
+      }
+    } catch { /* fall back to the live window */ }
+    // 1) let the learner optimise stop/target/entry on this history…
+    const best = optimiseStrategy(cs);
+    // 2) …then run the final backtest with the chosen (or default) params
+    const params = strategyParams();
+    const result = backtest(cs, params);
+    // 3) walk-forward: the HONEST out-of-sample check (tuned on 70%, tested on 30%)
+    const wf = walkForward(cs);
+
+    // 3) draw entries (▲ green) and exits (▼ by reason) + connector lines
+    const markers = [];
+    for (const t of result.trades) {
+      markers.push({ time: t.entryTime, position: 'belowBar', color: '#00d4aa',
+                     shape: 'arrowUp', text: `BUY ${fmtPrice(t.entry)}` });
+      const exitCol = t.reason === 'target' ? '#00d4aa' : t.reason === 'stop' ? '#ff4d6a' : '#f5c542';
+      markers.push({ time: t.exitTime, position: 'aboveBar', color: exitCol,
+                     shape: 'arrowDown', text: `${t.reason.toUpperCase()} ${t.ret >= 0 ? '+' : ''}${t.ret.toFixed(1)}%` });
+      // connector line entry→exit, green if profit else red
+      const s = lwChart.addLineSeries({ color: t.ret >= 0 ? 'rgba(0,212,170,0.5)' : 'rgba(255,77,106,0.5)',
+        lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Solid,
+        priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+      s.setData([{ time: t.entryTime, value: t.entry }, { time: t.exitTime, value: t.exitPrice }]);
+      backtestSeries.push(s);
+    }
+    candleSeries.setMarkers(markers.sort((a, b) => a.time - b.time));
+
+    // 4) results panel
+    const pf = result.profitFactor === Infinity ? '∞' : result.profitFactor.toFixed(2);
+    const eq = result.equity;
+    const eqCol = eq >= 0 ? 'var(--green)' : 'var(--red)';
+    const histStat = (learn.strategy[chartInterval]?.wins || 0) + (learn.strategy[chartInterval]?.losses || 0);
+    // honest (out-of-sample) walk-forward numbers
+    let wfHtml = '';
+    if (wf && wf.oos) {
+      const o = wf.oos;
+      const oCol = o.netPct >= 0 ? 'var(--green)' : 'var(--red)';
+      const oPf = o.profitFactor === Infinity ? '∞' : o.profitFactor.toFixed(2);
+      wfHtml = `<div class="pp-row bt-wf" title="${esc(BT_WF_INFO)}" style="margin-top:4px;border-top:1px solid var(--border);padding-top:4px">
+        <span style="color:var(--text-dim)">Honest (out-of-sample):</span>
+        <span style="color:${oCol};font-weight:600"> ${o.netPct >= 0 ? '+' : ''}${o.netPct.toFixed(1)}%</span>
+        <span style="color:var(--text-dim)"> · ${o.n} trade${o.n !== 1 ? 's' : ''} · ${Math.round(o.winRate*100)}% win · PF ${oPf}</span></div>`;
+    } else {
+      wfHtml = `<div class="pp-row" style="margin-top:4px;color:var(--muted);font-size:9px">Honest (out-of-sample): not enough history to split — need ~80+ bars.</div>`;
+    }
+    const panel = document.createElement('div');
+    panel.className = 'pattern-panel backtest-panel';
+    panel.innerHTML = `
+      <div class="pp-title">⊞ BACKTEST · ${chartInterval}</div>
+      <div class="pp-row" title="Optimistic: the strategy tuned AND measured on the same full history (curve-fit — flatters the result). Compounding balance from $10,000; fees + slippage subtracted.">
+        <span style="color:var(--text-dim)">Optimistic (in-sample):</span> <span style="color:${eqCol};font-weight:600">${eq >= 0 ? '+' : ''}${eq.toFixed(1)}%</span>
+        <span style="color:var(--text-dim)">($${Math.round(result.balance).toLocaleString()}) · ${result.n} trade${result.n !== 1 ? 's' : ''}</span></div>
+      ${wfHtml}
+      <div class="pp-row" style="color:var(--text-dim);margin-top:3px">Win rate: ${Math.round(result.winRate*100)}% · avg win +$${Math.round(result.avgWin).toLocaleString()} · avg loss −$${Math.round(result.avgLoss).toLocaleString()}</div>
+      <div class="pp-row" title="Profit factor = gross profit ÷ gross loss. Above 1 is net profitable; above 1.5 is decent. Below 1 loses money." style="color:var(--text-dim)">Profit factor: ${pf} · max drawdown ${result.maxDD.toFixed(1)}%</div>
+      <div class="pp-row" title="The stop/target/entry settings the optimiser found best. ATR = average true range (volatility)." style="color:var(--muted);margin-top:3px">
+        Optimised: enter ≥${params.entryScore} · stop ${params.stopATR}×ATR · target ${params.targetATR}×ATR · time ${params.timeStop} bars</div>
+      ${histStat ? `<div class="pp-row" style="color:var(--muted)">Strategy learned across ${histStat} prior trades on ${chartInterval}</div>` : ''}
+      <div class="pp-note">Paper sim, no real orders. The HONEST number is the one to trust — it's tested on data the tuning never saw. Costs included, but fills still assumed near stop/target (gaps are worse). ${(wf && wf.oos ? wf.oos.n : result.n) < 10 ? '<b>Too few out-of-sample trades to trust yet.</b>' : ''}</div>`;
+    document.getElementById('chartContainer').appendChild(panel);
+
+    if (best) {
+      setStatus('live', `Backtest: ${eq >= 0 ? '+' : ''}${eq.toFixed(1)}% over ${result.n} trades`);
+    }
+  }
+
+  function fmtPrice(p) {
+    return (chartCurPrefix || currency || '') + p.toLocaleString(undefined, { maximumFractionDigits: p < 1 ? 4 : 2 });
   }
 
   async function runPatternScan() {
@@ -2178,6 +3038,12 @@
     // 5) CONFLUENCE — do the layers agree?
     const confl = computeConfluence(cs, { pats, fvgs, levels, sweeps, vp, fc, lastPrice });
     recordAndScoreConfluence(cs, confl, secs);   // the meter grades itself too
+    paperAutoFollow(cs, confl);                   // paper auto-follow, if enabled
+    // Live paper-trade scorecard: grade any open trades for this chart against
+    // the fresh candles, then open a new one if a tradeable signal fires now.
+    gradePaperTrades(chartSymbol, chartInterval, cs);
+    openPaperTradeIfSignal(cs);
+    sweepPaperTrades();                          // resolve trades on other symbols (throttled)
     const gapCount = cs.filter(c => c.gapBefore).length; // session boundaries in view
 
     // 6) summary panel — every line carries a hover tooltip
@@ -2232,10 +3098,54 @@
       const tierTxt = tierR
         ? ` · <span title="How often a ${tier} confluence call has been right, learned from past setups">${tier} calls right ${Math.round(tierR.r*100)}% / ${tierR.n}</span>`
         : ` · <span style="color:var(--muted)">${tier} (learning…)</span>`;
+
+      // session-of-day reliability: how this tier performs at THIS time of day
+      let sessTxt = '';
+      if (chartInterval !== '1d' && lastCandles.length) {
+        const sess = sessionOf(lastCandles[lastCandles.length - 1].time);
+        const sR = rate('confluence', `${tier}@${sess}`);
+        const labelMap = { open: 'the open', midday: 'midday', close: 'the close',
+                           premarket: 'pre-market', afterhours: 'after-hours' };
+        if (sR) {
+          const better = tierR && sR.r > tierR.r + 0.08;
+          const worse = tierR && sR.r < tierR.r - 0.08;
+          const col = better ? 'var(--green)' : worse ? 'var(--red)' : 'var(--text-dim)';
+          sessTxt = `<div class="pp-row" title="${esc(ANALYSIS_INFO.session)}" style="font-size:9.5px;color:${col};margin-top:2px">⏱ At ${labelMap[sess] || sess}: ${tier} calls right ${Math.round(sR.r*100)}% / ${sR.n}${better ? ' — stronger than usual here' : worse ? ' — weaker here, be cautious' : ''}</div>`;
+        } else {
+          sessTxt = `<div class="pp-row" style="font-size:9px;color:var(--muted);margin-top:2px">⏱ At ${labelMap[sess] || sess}: learning this session…</div>`;
+        }
+      }
+
+      // Explain a disagreement between the trend forecast and the confluence
+      // verdict — they measure different things, and the gap is informative.
+      let divergeHtml = '';
+      const trendDir = fc ? (fc.slope > 0 ? 1 : fc.slope < 0 ? -1 : 0) : 0;
+      const conflDir = confl.dir === 'bullish' ? 1 : confl.dir === 'bearish' ? -1 : 0;
+      if (trendDir !== 0 && conflDir !== 0 && trendDir !== conflDir) {
+        // which mean-reversion voters are pulling against the trend?
+        const against = confl.votes
+          .filter(v => v.dir === conflDir && v.type === 'reversion')
+          .map(v => v.src);
+        const trendWordLocal = trendDir > 0 ? 'up' : 'down';
+        const conflWord = conflDir > 0 ? 'bounce/continuation up' : 'pullback/reversal down';
+        const because = against.length
+          ? ` because ${against.join(', ')} ${against.length > 1 ? 'are' : 'is'} pulling the other way`
+          : '';
+        divergeHtml = `<div class="pp-row pp-diverge" title="${esc(ANALYSIS_INFO.diverge)}" style="margin-top:4px;color:var(--yellow);font-size:9.5px">
+          ⚖ Trend says ${trendWordLocal}, evidence leans ${conflWord}${because}. The trend is the existing move; confluence weighs whether it's about to bend. Watch the level.
+        </div>`;
+      } else if (trendDir !== 0 && conflDir === trendDir) {
+        divergeHtml = `<div class="pp-row" title="${esc(ANALYSIS_INFO.diverge)}" style="margin-top:4px;color:var(--text-dim);font-size:9.5px">
+          ✓ Trend and confluence agree (${trendDir > 0 ? 'both up' : 'both down'}) — signals aligned.
+        </div>`;
+      }
+
       conflHtml = `<div ${ti('confluence')} style="margin-top:5px;border-top:1px solid var(--border);padding-top:5px">
         <span style="color:${col};font-weight:600">CONFLUENCE: ${confl.dir.toUpperCase()} ${confl.score>0?'+':''}${confl.score}</span>
         <span style="color:var(--text-dim)"> · ${confl.agree}/${confl.total} agree${tierTxt}</span>
         <div class="confl-bar"><div class="confl-fill" style="width:${pct}%;background:${col};margin-left:${confl.score<0?(50-pct/2):50}%"></div></div>
+        ${sessTxt}
+        ${divergeHtml}
       </div>`;
     }
 
@@ -2251,13 +3161,45 @@
       ${sweepLine ? `<div ${ti('sweep')} style="color:var(--text-dim)">${sweepLine}</div>` : ''}
       ${pocLine ? `<div ${ti('poc')} style="color:var(--text-dim)">${pocLine}</div>` : ''}
       ${conflHtml}
+      ${confl ? `<div id="mtfRow" class="pp-row" title="${esc(ANALYSIS_INFO.mtf)}" style="margin-top:3px;color:var(--muted);font-size:9.5px">↕ Multi-timeframe: checking…</div>` : ''}
       <div style="color:var(--text-dim);margin-top:2px">Trend calls: ${trendHist || 'learning ' + chartInterval + '…'}</div>
       ${gapCount > 0 ? `<div class="pp-row" title="${esc(ANALYSIS_INFO.gapguard)}" style="color:var(--muted);margin-top:2px">⚠ ${gapCount} session gap${gapCount>1?'s':''} in view — excluded from learning</div>` : ''}
+      ${paperScorecardHtml()}
       <div class="pp-note">Every layer grades itself 3 bars later and learns. Hover any line for what it means. Hints, not advice — small samples (&lt;5) hidden; even big ones mislead.</div>`;
     document.getElementById('chartContainer').appendChild(panel);
+
+    // Fill the multi-timeframe row asynchronously so it never blocks the panel.
+    if (confl) {
+      const mySym = chartSymbol, myItv = chartInterval;
+      getMultiTimeframe(mySym, myItv, { dir: confl.dir, score: confl.score, tier: conflTier(confl.score) })
+        .then(mtf => {
+          // only paint if the user is still on the same chart/timeframe
+          if (chartSymbol !== mySym || chartInterval !== myItv) return;
+          const el = document.getElementById('mtfRow');
+          if (el && mtf) el.outerHTML = renderMtfRow(mtf);
+        })
+        .catch(() => {});
+    }
   }
 
-  // ── Fibonacci retracement tool ────────────────────────────────────────────
+  function renderMtfRow(mtf) {
+    if (!mtf || !mtf.rows.length) {
+      return `<div id="mtfRow" class="pp-row" style="color:var(--muted);font-size:9.5px">↕ Multi-timeframe: no higher data available</div>`;
+    }
+    const ico = (dir) => dir === 'bullish' ? '<span style="color:var(--green)">▲</span>'
+      : dir === 'bearish' ? '<span style="color:var(--red)">▼</span>'
+      : '<span style="color:var(--muted)">·</span>';
+    const chips = mtf.rows.map(r =>
+      `<span title="${r.itv}: ${r.dir} ${r.score > 0 ? '+' : ''}${r.score}" style="margin-right:7px${r.current ? ';text-decoration:underline' : ''}">${r.itv} ${ico(r.dir)}</span>`
+    ).join('');
+    let verdict, vcol;
+    if (mtf.allAgree) { verdict = `All ${mtf.total} timeframes aligned — strongest setup`; vcol = 'var(--green)'; }
+    else if (mtf.conflict) { verdict = `Timeframes disagree — higher TF fights this; be cautious`; vcol = 'var(--yellow)'; }
+    else { verdict = `${mtf.agree}/${mtf.total} timeframes agree`; vcol = 'var(--text-dim)'; }
+    return `<div id="mtfRow" class="pp-row" title="${esc(ANALYSIS_INFO.mtf)}" style="margin-top:3px;font-size:9.5px">
+      <span style="color:var(--text-dim)">↕ MTF:</span> ${chips}<br>
+      <span style="color:${vcol}">${verdict}</span></div>`;
+  }
   // Two clicks: first on the swing START (e.g. the low of the move), second on
   // the swing END (the high). Levels are drawn between them: 0% sits at the
   // second click, 100% at the first — same convention as TradingView.
@@ -2340,6 +3282,7 @@
   }
 
   function onChartClick(param) {
+    if (rrMode) { onRRClick(param); return; }
     if (!fibMode || !param.point || !candleSeries) return;
     const price = candleSeries.coordinateToPrice(param.point.y);
     if (typeof price !== 'number' || !isFinite(price)) return;
@@ -2365,7 +3308,837 @@
     }
   }
 
-  // ── Header search with typeahead ───────────────────────────────────────────
+  // ── Risk/Reward visualizer ──────────────────────────────────────────────────
+  // Click entry → stop → target. Draws the three levels, shades nothing (keeps
+  // it clean), and shows R:R plus the position size for those exact levels.
+  let rrMode = false;
+  let rrStage = 0;            // 0=entry, 1=stop, 2=target
+  let rrPrices = { entry: null, stop: null, target: null };
+  let rrLines = [];
+
+  function toggleRR() {
+    rrMode = !rrMode;
+    document.getElementById('rrBtn').classList.toggle('active', rrMode);
+    if (rrMode) {
+      // fib and R/R share the click handler — don't run both at once
+      if (fibMode) { fibMode = false; document.getElementById('fibBtn').classList.remove('active'); }
+      rrStage = 0;
+      rrPrices = { entry: null, stop: null, target: null };
+      setFibHint('R/R: click your ENTRY price');
+    } else {
+      setFibHint('');
+    }
+  }
+
+  function clearRR() {
+    if (candleSeries) for (const l of rrLines) { try { candleSeries.removePriceLine(l); } catch {} }
+    rrLines = [];
+    rrPrices = { entry: null, stop: null, target: null };
+    rrStage = 0;
+    rrMode = false;
+    document.getElementById('rrBtn')?.classList.remove('active');
+    const p = document.querySelector('#chartContainer .rr-panel');
+    if (p) p.remove();
+    setFibHint('');
+  }
+
+  function onRRClick(param) {
+    if (!param.point || !candleSeries) return;
+    const price = candleSeries.coordinateToPrice(param.point.y);
+    if (typeof price !== 'number' || !isFinite(price)) return;
+    const dp = price < 1 ? 4 : 2;
+    const cur = chartCurPrefix || currency || '$';
+
+    if (rrStage === 0) {
+      rrPrices.entry = price;
+      rrLines.push(candleSeries.createPriceLine({
+        price, color: '#3b82f6', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid,
+        axisLabelVisible: true, title: `ENTRY ${cur}${price.toFixed(dp)}` }));
+      rrStage = 1;
+      setFibHint('R/R: click your STOP (below entry for a long)');
+    } else if (rrStage === 1) {
+      rrPrices.stop = price;
+      rrLines.push(candleSeries.createPriceLine({
+        price, color: '#ff4d6a', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed,
+        axisLabelVisible: true, title: `STOP ${cur}${price.toFixed(dp)}` }));
+      rrStage = 2;
+      setFibHint('R/R: click your TARGET (above entry)');
+    } else {
+      rrPrices.target = price;
+      rrLines.push(candleSeries.createPriceLine({
+        price, color: '#00d4aa', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed,
+        axisLabelVisible: true, title: `TARGET ${cur}${price.toFixed(dp)}` }));
+      rrMode = false; rrStage = 0;
+      document.getElementById('rrBtn').classList.remove('active');
+      setFibHint('');
+      renderRRPanel();
+    }
+  }
+
+  function renderRRPanel() {
+    const { entry, stop, target } = rrPrices;
+    if (entry == null || stop == null || target == null) return;
+    const old = document.querySelector('#chartContainer .rr-panel');
+    if (old) old.remove();
+    const cur = chartCurPrefix || currency || '$';
+    const risk = entry - stop;
+    const reward = target - entry;
+    const panel = document.createElement('div');
+    panel.className = 'pattern-panel rr-panel';
+
+    if (risk <= 0 || reward <= 0) {
+      panel.innerHTML = `<div class="pp-title" style="color:#3b82f6">⊞ RISK / REWARD</div>
+        <div class="sz-warn" style="color:var(--red)">For a long: stop must be below entry and target above. Click ✕ R/R and redraw.</div>`;
+      document.getElementById('chartContainer').appendChild(panel);
+      document.getElementById('rrClearBtn').style.display = '';
+      return;
+    }
+    const rr = reward / risk;
+    const stopPct = risk / entry * 100;
+    const tgtPct = reward / entry * 100;
+    // tie into the sizer: shares for the user's saved account + risk settings
+    const { acct, risk: riskPct } = sizerSettings();
+    const shares = Math.max(0, Math.floor((acct * riskPct / 100) / risk));
+    const cost = shares * entry;
+    const capped = cost > acct;
+    const realShares = capped ? Math.floor(acct / entry) : shares;
+    const dollarRisk = realShares * risk;
+    const dollarReward = realShares * reward;
+    const rrColor = rr >= 2 ? 'var(--green)' : rr >= 1 ? 'var(--yellow)' : 'var(--red)';
+    const fmt = (n) => cur + Math.round(n).toLocaleString();
+
+    panel.innerHTML = `
+      <div class="pp-title" style="color:#3b82f6;display:flex;justify-content:space-between">
+        <span>⊞ RISK / REWARD</span><span class="sz-close" style="cursor:pointer" onclick="clearRR()">✕</span></div>
+      <div style="font-size:15px;font-weight:600;color:${rrColor}">${rr.toFixed(2)} : 1 <span style="font-size:9px;color:var(--text-dim)">reward : risk</span></div>
+      <div class="pp-row" style="color:var(--text-dim);margin-top:4px" title="How far price must fall to stop you out vs rise to hit target.">
+        Risk ${stopPct.toFixed(2)}% · Reward ${tgtPct.toFixed(2)}%</div>
+      <div class="pp-row" style="color:var(--text-dim);margin-top:4px;border-top:1px solid var(--border);padding-top:5px" title="Sized from your saved account (${fmt(acct)}) and ${riskPct}% risk — same settings as the position sizer.">
+        ${realShares.toLocaleString()} shares · cost ${fmt(cost > acct ? realShares*entry : cost)}</div>
+      <div class="pp-row"><span style="color:var(--red)">Risk ${fmt(dollarRisk)}</span> · <span style="color:var(--green)">Reward ${fmt(dollarReward)}</span></div>
+      ${rr < 1 ? '<div class="sz-warn" style="color:var(--red);margin-top:4px">Reward is smaller than risk — you need to win more than half your trades just to break even.</div>'
+        : rr < 2 ? '<div class="sz-sub" style="color:var(--yellow);margin-top:4px">Below 2:1. Workable, but the math is less forgiving.</div>'
+        : '<div class="sz-sub" style="color:var(--text-dim);margin-top:4px">2:1 or better — even a sub-50% win rate can be profitable here.</div>'}
+      ${capped ? '<div class="sz-warn" style="margin-top:4px">Size capped by account funds.</div>' : ''}`;
+    document.getElementById('chartContainer').appendChild(panel);
+    document.getElementById('rrClearBtn').style.display = '';
+  }
+
+  // ── Trade Journal ───────────────────────────────────────────────────────────
+  // Tap-driven, two-stage (log on entry → update on close), pre-filled from the
+  // R/R and sizer tools, with behavioral prompts. Stored server-side.
+  // ── Paper-trading mirror ────────────────────────────────────────────────────
+  // A full simulated trading account: manual or auto-follow entries, live
+  // position tracking against the price stream, auto-close at stop/target plus
+  // manual early close, multiple positions, concentration warnings, and the
+  // Phase-1 risk guardrails (daily loss limit / max trades per day). This mirrors
+  // EXACTLY what the real Tiger order layer will later do — but with fake money,
+  // so the whole flow can be trusted before a real dollar is ever at risk.
+  const emptyPaper2 = () => ({
+    balance: 10000, startBalance: 10000,
+    positions: [], closed: [],
+    settings: { autoFollow: false, riskPct: 1, concentrationPct: 25 },
+    guardrails: { dailyLossPct: 3, maxTradesPerDay: 5, enabled: true },
+    dayKey: todayKey(), dayStartBalance: 10000, dayTrades: 0,
+  });
+  let paper = emptyPaper2();
+  let paperLoaded = false;
+  let paperSaveTimer = null;
+
+  function todayKey() { return new Date().toISOString().slice(0, 10); }
+
+  async function loadPaper() {
+    try {
+      const res = await fetch('/paper');
+      const json = await res.json();
+      if (json.ok && json.data && typeof json.data === 'object') {
+        paper = Object.assign(emptyPaper2(), json.data);
+        paper.settings = Object.assign(emptyPaper2().settings, paper.settings || {});
+        paper.guardrails = Object.assign(emptyPaper2().guardrails, paper.guardrails || {});
+        paper.positions = paper.positions || [];
+        paper.closed = paper.closed || [];
+      }
+    } catch {}
+    rolloverDay();
+    paperLoaded = true;
+  }
+  function savePaper() {
+    clearTimeout(paperSaveTimer);
+    paperSaveTimer = setTimeout(() => {
+      fetch('/paper', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(paper) }).catch(() => {});
+    }, 400);
+  }
+
+  // Reset the daily guardrail counters when the calendar day changes.
+  function rolloverDay() {
+    const k = todayKey();
+    if (paper.dayKey !== k) {
+      paper.dayKey = k;
+      paper.dayStartBalance = paper.balance;
+      paper.dayTrades = 0;
+    }
+  }
+
+  // Account equity = cash balance + open position market value (live).
+  function paperEquity() {
+    let eq = paper.balance;
+    for (const p of paper.positions) {
+      const px = livePrice(p.sym) ?? p.entry;
+      eq += px * p.shares;
+    }
+    return eq;
+  }
+  function livePrice(sym) {
+    const row = allData.find(r => r.ticker === sym) || (pinnedRow && pinnedRow.ticker === sym ? pinnedRow : null);
+    if (row && row.price > 0) return row.price;
+    if (chartSymbol === sym && lastCandles.length) return lastCandles[lastCandles.length - 1].close;
+    return null;
+  }
+
+  // Guardrail check before opening a new position. Returns {ok} or {ok:false,msg}.
+  function guardCheck(costFraction) {
+    rolloverDay();
+    const g = paper.guardrails;
+    if (g.enabled) {
+      const dayPnlPct = (paperEquity() - paper.dayStartBalance) / paper.dayStartBalance * 100;
+      if (dayPnlPct <= -Math.abs(g.dailyLossPct)) {
+        return { ok: false, msg: `Daily loss limit hit (${dayPnlPct.toFixed(1)}% ≤ −${g.dailyLossPct}%). Trading locked until tomorrow — step away. This is the guardrail doing its job.` };
+      }
+      if (paper.dayTrades >= g.maxTradesPerDay) {
+        return { ok: false, msg: `Max ${g.maxTradesPerDay} trades today reached. Overtrading is a top account-killer — the guardrail is holding you back on purpose.` };
+      }
+    }
+    // concentration warning (not a hard block)
+    let warn = null;
+    if (costFraction != null && costFraction * 100 > paper.settings.concentrationPct) {
+      warn = `This position is ${Math.round(costFraction*100)}% of your account — above your ${paper.settings.concentrationPct}% concentration comfort. Consider sizing down.`;
+    }
+    return { ok: true, warn };
+  }
+
+  // Open a paper position. levels: {sym, name, entry, stop, target, shares}
+  function paperOpen(levels, source) {
+    if (!paperLoaded) return;
+    const cost = levels.shares * levels.entry;
+    const frac = cost / paperEquity();
+    const g = guardCheck(frac);
+    if (!g.ok) { setStatus('error', g.msg); paperAlert(g.msg, true); return false; }
+    if (cost > paper.balance) { paperAlert('Not enough paper cash for this position.', true); return false; }
+    const pos = {
+      id: 'P' + Date.now(), sym: levels.sym, name: levels.name || levels.sym,
+      shares: levels.shares, entry: levels.entry, stop: levels.stop, target: levels.target,
+      openedAt: Date.now(), source: source || 'manual',
+    };
+    paper.balance -= cost;           // cash out to buy
+    paper.positions.push(pos);
+    paper.dayTrades++;
+    savePaper();
+    rtResubscribe();                 // make sure it streams
+    paperAlert(`Opened ${pos.shares} ${pos.sym.replace(/\.(NZ|AX)$/,'')} @ ${fmtPrice(pos.entry)}${g.warn ? ' — ' + g.warn : ''}`, !!g.warn);
+    if (document.getElementById('paperOverlay')?.classList.contains('show')) renderPaper();
+    return true;
+  }
+
+  // Close a position at a given price for a reason.
+  function paperClose(id, price, reason) {
+    const i = paper.positions.findIndex(p => p.id === id);
+    if (i < 0) return;
+    const p = paper.positions[i];
+    const exit = price ?? livePrice(p.sym) ?? p.entry;
+    const FEE = 0.0005, SLIP = 0.0005;
+    const fill = exit * (1 - (reason === 'stop' ? SLIP : 0)); // model slippage on stops
+    const proceeds = fill * p.shares;
+    const cost = p.entry * p.shares;
+    const fees = (cost + proceeds) * FEE;
+    const pnl = proceeds - cost - fees;
+    paper.balance += proceeds - fees;
+    paper.closed.unshift({
+      ...p, exit: fill, reason, pnl: +pnl.toFixed(2),
+      pnlPct: +((fill - p.entry) / p.entry * 100).toFixed(2), closedAt: Date.now(),
+    });
+    if (paper.closed.length > 300) paper.closed = paper.closed.slice(0, 300);
+    paper.positions.splice(i, 1);
+    savePaper();
+    paperAlert(`Closed ${p.sym.replace(/\.(NZ|AX)$/,'')} (${reason}) · ${pnl >= 0 ? '+' : ''}${fmtPrice(pnl).replace(/^[^\d-]*/, (chartCurPrefix||'$'))} P&L`, false);
+    if (document.getElementById('paperOverlay')?.classList.contains('show')) renderPaper();
+  }
+
+  // Called on every price tick: check open positions for stop/target hits.
+  function paperCheckStops(sym, price) {
+    if (!paperLoaded || !paper.positions.length) return;
+    for (const p of paper.positions.filter(p => p.sym === sym)) {
+      if (p.stop && price <= p.stop) { paperClose(p.id, p.stop, 'stop'); }
+      else if (p.target && price >= p.target) { paperClose(p.id, p.target, 'target'); }
+    }
+  }
+
+  // Auto-follow: when enabled and a strong bullish confluence fires at the live
+  // edge, open a paper position sized by the account's risk %. One per symbol.
+  function paperAutoFollow(cs, confl) {
+    if (!paperLoaded || !paper.settings.autoFollow) return;
+    if (!confl || confl.dir !== 'bullish' || conflTier(confl.score) !== 'strong') return;
+    if (paper.positions.some(p => p.sym === chartSymbol)) return;
+    const last = cs[cs.length - 1];
+    if (last.thin || last.gapBefore) return;
+    const atr = atrAt(cs, cs.length - 1);
+    if (!atr || atr <= 0) return;
+    const entry = last.close;
+    const stop = entry - 1.5 * atr, target = entry + 3 * atr;
+    const shares = Math.floor((paperEquity() * paper.settings.riskPct / 100) / (entry - stop));
+    if (shares < 1) return;
+    paperOpen({ sym: chartSymbol, name: chartName, entry, stop, target, shares }, 'auto');
+  }
+
+  function paperAlert(msg, warn) {
+    setStatus(warn ? 'error' : 'live', msg);
+  }
+
+  // ── Paper trading UI ────────────────────────────────────────────────────────
+  async function openPaperPortfolio() {
+    if (!paperLoaded) await loadPaper();
+    document.getElementById('paperTitle').textContent = 'Paper Trading';
+    renderPaper();
+    document.getElementById('paperOverlay').classList.add('show');
+  }
+  function closePaper() { document.getElementById('paperOverlay').classList.remove('show'); }
+
+  function renderPaper() {
+    rolloverDay();
+    const eq = paperEquity();
+    const totPnl = eq - paper.startBalance;
+    const totPct = totPnl / paper.startBalance * 100;
+    const dayPnl = eq - paper.dayStartBalance;
+    const dayPct = paper.dayStartBalance ? dayPnl / paper.dayStartBalance * 100 : 0;
+    const g = paper.guardrails;
+    const cur = '$';
+    const col = (n) => n >= 0 ? 'var(--green)' : 'var(--red)';
+
+    // guardrail status line
+    let guardHtml = '';
+    if (g.enabled) {
+      const locked = dayPct <= -Math.abs(g.dailyLossPct) || paper.dayTrades >= g.maxTradesPerDay;
+      guardHtml = `<div class="pf-guard ${locked ? 'locked' : ''}">
+        ${locked ? '🔒 TRADING LOCKED — ' : '🛡 Guardrails active — '}
+        today: ${dayPct >= 0 ? '+' : ''}${dayPct.toFixed(1)}% (limit −${g.dailyLossPct}%) · ${paper.dayTrades}/${g.maxTradesPerDay} trades used
+        ${locked ? '. Step away until tomorrow — this is the guardrail protecting you.' : ''}</div>`;
+    }
+
+    // open positions
+    let posHtml = '';
+    if (paper.positions.length) {
+      posHtml = paper.positions.map(p => {
+        const px = livePrice(p.sym) ?? p.entry;
+        const upnl = (px - p.entry) * p.shares;
+        const upct = (px - p.entry) / p.entry * 100;
+        const conc = (px * p.shares) / eq * 100;
+        return `<div class="pf-pos">
+          <span><span class="pf-sym">${p.sym.replace(/\.(NZ|AX)$/,'')}</span> <span class="pf-sub">${p.shares} sh @ ${fmtPrice(p.entry)}${p.source==='auto'?' · auto':''}</span></span>
+          <span class="pf-sub">stop ${fmtPrice(p.stop)}<br>tgt ${fmtPrice(p.target)}</span>
+          <span>${fmtPrice(px)}<br><span class="pf-sub">${conc.toFixed(0)}% of acct</span></span>
+          <span style="color:${col(upnl)};font-weight:600">${upnl>=0?'+':''}${cur}${Math.round(upnl).toLocaleString()}<br><span class="pf-sub" style="color:${col(upnl)}">${upct>=0?'+':''}${upct.toFixed(2)}%</span></span>
+          <button class="pf-close-btn" onclick="paperClose('${p.id}', null, 'manual')">Close</button>
+        </div>`;
+      }).join('');
+    } else {
+      posHtml = `<div class="pf-sub" style="padding:8px 0">No open positions. Open a chart and tap ⇄ PAPER BUY, or enable auto-follow below.</div>`;
+    }
+
+    // closed history (recent)
+    let closedHtml = '';
+    if (paper.closed.length) {
+      const wins = paper.closed.filter(t => t.pnl > 0).length;
+      closedHtml = `<div class="pf-section-h">Closed — ${paper.closed.length} trades · ${Math.round(wins/paper.closed.length*100)}% win</div>` +
+        paper.closed.slice(0, 12).map(t => `<div class="pf-pos" style="grid-template-columns:1.3fr 1fr 1fr auto">
+          <span><span class="pf-sym">${t.sym.replace(/\.(NZ|AX)$/,'')}</span> <span class="pf-sub">${t.shares} sh</span></span>
+          <span class="pf-sub">${fmtPrice(t.entry)} → ${fmtPrice(t.exit)}</span>
+          <span class="pf-sub">${t.reason}</span>
+          <span style="color:${col(t.pnl)};font-weight:600">${t.pnl>=0?'+':''}${cur}${Math.round(t.pnl).toLocaleString()} <span class="pf-sub" style="color:${col(t.pnl)}">(${t.pnlPct>=0?'+':''}${t.pnlPct.toFixed(1)}%)</span></span>
+        </div>`).join('');
+    }
+
+    const s = paper.settings;
+    document.getElementById('paperBody').innerHTML = `
+      <div class="pf-equity">
+        <div class="pf-stat"><div class="pf-stat-v">${cur}${Math.round(eq).toLocaleString()}</div><div class="pf-stat-l">equity</div></div>
+        <div class="pf-stat"><div class="pf-stat-v" style="color:${col(totPnl)}">${totPnl>=0?'+':''}${cur}${Math.round(totPnl).toLocaleString()}</div><div class="pf-stat-l">total P&L · ${totPct>=0?'+':''}${totPct.toFixed(1)}%</div></div>
+        <div class="pf-stat"><div class="pf-stat-v">${cur}${Math.round(paper.balance).toLocaleString()}</div><div class="pf-stat-l">cash free</div></div>
+      </div>
+      ${guardHtml}
+      <div class="pf-section-h">Open positions (${paper.positions.length})</div>
+      ${posHtml}
+      ${closedHtml}
+      <div class="pf-section-h">Settings</div>
+      <div class="pf-set-row">
+        <span class="pf-toggle ${s.autoFollow?'on':''}" onclick="paperToggleAuto()">Auto-follow strong signals: ${s.autoFollow?'ON':'OFF'}</span>
+      </div>
+      <div class="pf-set-row">Risk % per trade <input type="number" min="0.1" max="100" step="0.1" value="${s.riskPct}" onchange="paperSet('riskPct', this.value)">
+        · Concentration warn at <input type="number" min="5" max="100" step="5" value="${s.concentrationPct}" onchange="paperSet('concentrationPct', this.value)">%</div>
+      <div class="pf-set-row">Guardrails <span class="pf-toggle ${g.enabled?'on':''}" onclick="paperToggleGuard()">${g.enabled?'ON':'OFF'}</span>
+        · daily loss limit <input type="number" min="0.5" max="50" step="0.5" value="${g.dailyLossPct}" onchange="paperSet('dailyLossPct', this.value)">%
+        · max trades/day <input type="number" min="1" max="50" step="1" value="${g.maxTradesPerDay}" onchange="paperSet('maxTradesPerDay', this.value)"></div>
+      <div class="pf-set-row" style="margin-top:6px"><span class="pf-toggle" onclick="paperReset()" style="border-color:rgba(255,77,106,0.4);color:var(--red)">Reset paper account</span></div>
+      <div class="db-tiny" style="margin-top:10px">Simulated money only — no real orders are placed. Costs (fee + slippage on stops) are modelled. This mirrors what the real Tiger order layer will do; trust it here for weeks before risking real capital.</div>`;
+  }
+
+  function paperToggleAuto() { paper.settings.autoFollow = !paper.settings.autoFollow; savePaper(); renderPaper(); }
+  function paperToggleGuard() { paper.guardrails.enabled = !paper.guardrails.enabled; savePaper(); renderPaper(); }
+  function paperSet(key, val) {
+    val = parseFloat(val); if (!Number.isFinite(val)) return;
+    if (key in paper.settings) paper.settings[key] = val;
+    else if (key in paper.guardrails) paper.guardrails[key] = val;
+    savePaper(); renderPaper();
+  }
+  function paperReset() {
+    if (!confirm('Reset the paper account to $10,000 and clear all positions and history?')) return;
+    const keepSettings = paper.settings, keepGuard = paper.guardrails;
+    paper = emptyPaper2();
+    paper.settings = keepSettings; paper.guardrails = keepGuard;
+    savePaper(); renderPaper();
+  }
+
+  // Trade ticket — opened from the chart's ⇄ PAPER BUY, pre-filled from R/R + sizer
+  function openTradeTicket() {
+    if (!chartSymbol) return;
+    if (!paperLoaded) { loadPaper().then(openTradeTicket); return; }
+    const price = lastCandles.length ? lastCandles[lastCandles.length - 1].close : 0;
+    let entry = price, stop = +(price * 0.985).toFixed(price < 1 ? 4 : 2), target = +(price * 1.03).toFixed(price < 1 ? 4 : 2);
+    if (rrPrices && rrPrices.entry != null) { entry = rrPrices.entry; stop = rrPrices.stop ?? stop; target = rrPrices.target ?? target; }
+    else if (lastCandles.length > 15) {
+      const atr = atrAt(lastCandles, lastCandles.length - 1);
+      if (atr > 0) { stop = +(entry - 1.5 * atr).toFixed(price < 1 ? 4 : 2); target = +(entry + 3 * atr).toFixed(price < 1 ? 4 : 2); }
+    }
+    const { acct, risk } = sizerSettings();
+    const shares = (entry > stop) ? Math.floor((paperEquity() * paper.settings.riskPct / 100) / (entry - stop)) : 0;
+
+    document.getElementById('paperTitle').textContent = 'Paper Buy · ' + chartSymbol.replace(/\.(NZ|AX)$/, '');
+    document.getElementById('paperBody').innerHTML = `
+      <div class="pf-ticket">
+        <div class="pf-sub" style="margin-bottom:6px">Pre-filled from your R/R levels and risk % (${paper.settings.riskPct}% of equity). Edit anything.</div>
+        <div class="pf-tnum">
+          <label>Entry $<input id="tkEntry" type="number" step="0.01" value="${entry}" oninput="tkRecalc()"></label>
+          <label>Stop $<input id="tkStop" type="number" step="0.01" value="${stop}" oninput="tkRecalc()"></label>
+          <label>Target $<input id="tkTarget" type="number" step="0.01" value="${target}" oninput="tkRecalc()"></label>
+          <label>Shares<input id="tkShares" type="number" step="1" value="${shares}" oninput="tkRecalc()"></label>
+        </div>
+        <div id="tkInfo" class="pf-sub"></div>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <button class="pf-buy-btn" onclick="tkSubmit()">Buy (paper)</button>
+          <span class="pf-toggle" onclick="openPaperPortfolio()">View portfolio</span>
+        </div>
+      </div>`;
+    document.getElementById('paperOverlay').classList.add('show');
+    tkRecalc();
+  }
+  function tkRecalc() {
+    const g = id => parseFloat(document.getElementById(id)?.value);
+    const entry = g('tkEntry'), stop = g('tkStop'), target = g('tkTarget'), shares = g('tkShares');
+    const el = document.getElementById('tkInfo'); if (!el) return;
+    if (![entry, stop, target, shares].every(Number.isFinite) || entry <= 0) { el.textContent = ''; return; }
+    const cost = shares * entry, risk = shares * (entry - stop), reward = shares * (target - entry);
+    const rr = (entry - stop) > 0 ? (target - entry) / (entry - stop) : 0;
+    const conc = cost / paperEquity() * 100;
+    el.innerHTML = `Cost ${fmtPrice(cost)} (${conc.toFixed(0)}% of equity) · risk <span style="color:var(--red)">${fmtPrice(risk)}</span> · reward <span style="color:var(--green)">${fmtPrice(reward)}</span> · R:R ${rr.toFixed(2)}:1${conc > paper.settings.concentrationPct ? ` · <span style="color:var(--yellow)">over ${paper.settings.concentrationPct}% concentration</span>` : ''}`;
+  }
+  function tkSubmit() {
+    const g = id => parseFloat(document.getElementById(id)?.value);
+    const entry = g('tkEntry'), stop = g('tkStop'), target = g('tkTarget'), shares = g('tkShares');
+    if (![entry, stop, target, shares].every(Number.isFinite) || shares < 1 || entry <= stop) {
+      setStatus('error', 'Check the ticket: need valid entry/stop/target and shares, stop below entry.'); return;
+    }
+    const ok = paperOpen({ sym: chartSymbol, name: chartName, entry, stop, target, shares }, 'manual');
+    if (ok) openPaperPortfolio();
+  }
+
+  let journal = { trades: [] };
+  let journalLoaded = false;
+  let jrDraft = null;       // the trade being edited in the form
+
+  async function loadJournal() {
+    try {
+      const res = await fetch('/journal');
+      const json = await res.json();
+      if (json.ok && json.data && Array.isArray(json.data.trades)) journal = json.data;
+    } catch {}
+    journalLoaded = true;
+  }
+  let jrSaveTimer = null;
+  function saveJournal() {
+    clearTimeout(jrSaveTimer);
+    jrSaveTimer = setTimeout(() => {
+      fetch('/journal', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(journal) }).catch(() => {});
+    }, 400);
+  }
+
+  function closeJournal() {
+    document.getElementById('journalOverlay').classList.remove('show');
+    jrDraft = null;
+  }
+
+  // Tap-option config reused across questions
+  const JR_SETUPS = ['Breakout', 'Pullback', 'Reversal', 'Confluence signal', 'News/catalyst', 'Other'];
+  const JR_EMOTIONS = ['Calm / planned', 'Confident', 'FOMO', 'Anxious', 'Revenge', 'Bored'];
+  const JR_EXITS = ['Hit target', 'Hit stop', 'Manual — good', 'Manual — panic', 'Time/other'];
+
+  // Open the LOG form for the current chart's trade (entry stage)
+  async function openJournalForm() {
+    if (!journalLoaded) await loadJournal();
+    // pre-fill from R/R drawing, else sizer defaults, else current price
+    const price = lastCandles.length ? lastCandles[lastCandles.length - 1].close : 0;
+    const pre = { entry: price, stop: null, target: null, shares: null };
+    if (rrPrices && rrPrices.entry != null) {
+      pre.entry = rrPrices.entry; pre.stop = rrPrices.stop; pre.target = rrPrices.target;
+    }
+    const { acct, risk } = sizerSettings();
+    if (pre.stop != null && pre.entry > pre.stop) {
+      pre.shares = Math.floor((acct * risk / 100) / (pre.entry - pre.stop));
+    }
+    jrDraft = {
+      id: 'T' + Date.now(),
+      sym: chartSymbol, name: chartName || chartSymbol, itv: chartInterval,
+      openedAt: Date.now(), status: 'open',
+      side: 'long',
+      entry: pre.entry, stop: pre.stop, target: pre.target, shares: pre.shares,
+      setup: null, plannedRR: (rrPrices && rrPrices.entry != null && rrPrices.target > rrPrices.entry && rrPrices.entry > rrPrices.stop)
+        ? +((rrPrices.target - rrPrices.entry) / (rrPrices.entry - rrPrices.stop)).toFixed(2) : null,
+      emotion: null, followedPlan: null,
+      exitReason: null, exitPrice: null, pnl: null, pnlPct: null, lesson: '', note: '',
+    };
+    renderJournalForm('open');
+  }
+
+  // Render the staged form. stage: 'open' (entry) or 'close' (outcome)
+  function renderJournalForm(stage) {
+    const d = jrDraft;
+    const cur = chartCurPrefixFor(d.sym) || '$';
+    document.getElementById('jrTitle').textContent =
+      (stage === 'open' ? 'Log Trade · ' : 'Close Trade · ') + (d.sym ? d.sym.replace(/\.(NZ|AX)$/, '') : '');
+
+    const opt = (val, cur, key, redIf) => {
+      const sel = cur === val ? (redIf && redIf(val) ? 'sel-red' : 'sel') : '';
+      return `<span class="jr-opt ${sel}" onclick="jrPick('${key}', ${JSON.stringify(val).replace(/"/g, '&quot;')})">${val}</span>`;
+    };
+
+    let body = '';
+    if (stage === 'open') {
+      const prefilled = (d.stop != null || d.target != null);
+      body += prefilled
+        ? `<div class="jr-prefill">Pre-filled from your R/R + sizer levels. Edit anything below.</div>`
+        : `<div class="jr-prefill">Tip: draw entry/stop/target with the ⊞ R/R tool first and it'll pre-fill here.</div>`;
+      body += `<div class="jr-q"><div class="jr-label">The trade (tap a setup type)</div>
+        <div class="jr-opts">${JR_SETUPS.map(s => opt(s, d.setup, 'setup')).join('')}</div></div>`;
+      body += `<div class="jr-q"><div class="jr-label">Levels & size</div><div class="jr-num">
+        <label>Entry ${cur}<input type="number" step="0.01" value="${d.entry ?? ''}" oninput="jrNum('entry', this.value)"></label>
+        <label>Stop ${cur}<input type="number" step="0.01" value="${d.stop ?? ''}" oninput="jrNum('stop', this.value)"></label>
+        <label>Target ${cur}<input type="number" step="0.01" value="${d.target ?? ''}" oninput="jrNum('target', this.value)"></label>
+        <label>Shares<input type="number" step="1" value="${d.shares ?? ''}" oninput="jrNum('shares', this.value)"></label>
+      </div><div id="jrRRhint" class="jr-meta"></div></div>`;
+      body += `<div class="jr-q"><div class="jr-label">How are you feeling going in? (honest — this is the useful part)</div>
+        <div class="jr-opts">${JR_EMOTIONS.map(e => opt(e, d.emotion, 'emotion', v => /FOMO|Revenge|Anxious|Bored/.test(v))).join('')}</div></div>`;
+      body += `<div class="jr-q"><div class="jr-label">Why this trade? (optional, one line)</div>
+        <textarea class="jr-note" oninput="jrNum('note', this.value)" placeholder="e.g. broke above resistance on strong volume, confluence bullish">${d.note || ''}</textarea></div>`;
+      body += `<div class="jr-actions">
+        <button class="jr-btn" onclick="jrSubmitOpen()">Log entry</button>
+        <button class="jr-btn ghost" onclick="closeJournal()">Cancel</button></div>`;
+    } else {
+      // close stage — outcome + reflection
+      body += `<div class="jr-prefill">Entry ${cur}${fmtJr(d.entry)} · stop ${cur}${fmtJr(d.stop)} · target ${cur}${fmtJr(d.target)} · ${d.shares || '?'} shares${d.plannedRR ? ' · planned ' + d.plannedRR + ':1' : ''}</div>`;
+      body += `<div class="jr-q"><div class="jr-label">How did it close?</div>
+        <div class="jr-opts">${JR_EXITS.map(e => opt(e, d.exitReason, 'exitReason', v => /panic/.test(v))).join('')}</div></div>`;
+      body += `<div class="jr-q"><div class="jr-label">Exit price</div><div class="jr-num">
+        <label>Exit ${cur}<input type="number" step="0.01" value="${d.exitPrice ?? ''}" oninput="jrNum('exitPrice', this.value)"></label>
+        <span id="jrPnlHint" class="jr-meta" style="align-self:flex-end"></span></div></div>`;
+      body += `<div class="jr-q"><div class="jr-label">Did you follow your plan?</div>
+        <div class="jr-opts">
+          ${opt('Yes — by the book', d.followedPlan, 'followedPlan')}
+          ${opt('Mostly', d.followedPlan, 'followedPlan')}
+          ${opt('No — broke my rules', d.followedPlan, 'followedPlan', v => /No/.test(v))}
+        </div></div>`;
+      body += `<div class="jr-q"><div class="jr-label">One lesson from this trade? (optional)</div>
+        <textarea class="jr-note" oninput="jrNum('lesson', this.value)" placeholder="e.g. exited too early out of fear; setup was valid">${d.lesson || ''}</textarea></div>`;
+      body += `<div class="jr-actions">
+        <button class="jr-btn" onclick="jrSubmitClose()">Save outcome</button>
+        <button class="jr-btn ghost" onclick="openJournalHistory()">Back to list</button></div>`;
+    }
+    document.getElementById('jrBody').innerHTML = body;
+    document.getElementById('journalOverlay').classList.add('show');
+    if (stage === 'open') updateRRhint();
+    if (stage === 'close') updatePnlHint();
+  }
+
+  function jrPick(key, val) { jrDraft[key] = val; renderJournalForm(jrDraft.status === 'open' && !jrDraft._closing ? 'open' : 'close'); }
+  function jrNum(key, val) {
+    jrDraft[key] = (key === 'note' || key === 'lesson') ? val : (val === '' ? null : parseFloat(val));
+    if (['entry','stop','target','shares'].includes(key)) updateRRhint();
+    if (key === 'exitPrice') updatePnlHint();
+  }
+
+  function updateRRhint() {
+    const el = document.getElementById('jrRRhint'); if (!el) return;
+    const d = jrDraft;
+    if (d.entry > 0 && d.stop > 0 && d.target > 0 && d.entry > d.stop && d.target > d.entry) {
+      const rr = (d.target - d.entry) / (d.entry - d.stop);
+      d.plannedRR = +rr.toFixed(2);
+      const risk = d.shares ? d.shares * (d.entry - d.stop) : null;
+      el.innerHTML = `Planned R:R ${rr.toFixed(2)}:1${risk ? ` · risking ~${(chartCurPrefixFor(d.sym)||'$')}${Math.round(risk).toLocaleString()}` : ''}`;
+    } else { el.textContent = ''; }
+  }
+  function updatePnlHint() {
+    const el = document.getElementById('jrPnlHint'); if (!el) return;
+    const d = jrDraft;
+    if (d.exitPrice > 0 && d.entry > 0 && d.shares > 0) {
+      const pnl = (d.exitPrice - d.entry) * d.shares;
+      const pct = (d.exitPrice - d.entry) / d.entry * 100;
+      el.innerHTML = `<span class="${pnl >= 0 ? 'jr-pnl-win' : 'jr-pnl-loss'}">${pnl >= 0 ? '+' : ''}${(chartCurPrefixFor(d.sym)||'$')}${Math.round(pnl).toLocaleString()} (${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%)</span>`;
+    } else { el.textContent = ''; }
+  }
+
+  function jrSubmitOpen() {
+    if (!jrDraft.setup) { flashJrNeed('Pick a setup type'); return; }
+    // upsert into journal
+    const i = journal.trades.findIndex(t => t.id === jrDraft.id);
+    if (i >= 0) journal.trades[i] = jrDraft; else journal.trades.unshift(jrDraft);
+    saveJournal();
+    setStatus('live', 'Trade logged to journal');
+    openJournalHistory();
+  }
+
+  function jrSubmitClose() {
+    const d = jrDraft;
+    if (!d.exitReason) { flashJrNeed('How did it close?'); return; }
+    if (d.exitPrice > 0 && d.entry > 0 && d.shares > 0) {
+      d.pnl = +((d.exitPrice - d.entry) * d.shares).toFixed(2);
+      d.pnlPct = +((d.exitPrice - d.entry) / d.entry * 100).toFixed(2);
+    }
+    d.status = 'closed';
+    d.closedAt = Date.now();
+    const i = journal.trades.findIndex(t => t.id === d.id);
+    if (i >= 0) journal.trades[i] = d; else journal.trades.unshift(d);
+    saveJournal();
+    openJournalHistory();
+  }
+
+  function flashJrNeed(msg) {
+    const b = document.getElementById('jrBody');
+    let warn = document.getElementById('jrWarn');
+    if (!warn) { warn = document.createElement('div'); warn.id = 'jrWarn'; warn.className = 'sz-warn';
+      warn.style.cssText = 'color:var(--red);margin-bottom:10px'; b.prepend(warn); }
+    warn.textContent = msg;
+  }
+
+  // Continue a half-logged open trade into its close stage
+  function jrCloseTrade(id) {
+    const t = journal.trades.find(x => x.id === id);
+    if (!t) return;
+    jrDraft = { ...t, _closing: true };
+    renderJournalForm('close');
+  }
+  function jrEditOpen(id) {
+    const t = journal.trades.find(x => x.id === id);
+    if (!t) return;
+    jrDraft = { ...t };
+    renderJournalForm('open');
+  }
+  function jrDeleteTrade(id) {
+    journal.trades = journal.trades.filter(t => t.id !== id);
+    saveJournal();
+    openJournalHistory();
+  }
+
+  async function openJournalHistory() {
+    if (!journalLoaded) await loadJournal();
+    jrDraft = null;
+    document.getElementById('jrTitle').textContent = 'Trade Journal';
+    document.getElementById('jrTabList')?.classList.add('active');
+    document.getElementById('jrTabDash')?.classList.remove('active');
+    const ts = journal.trades;
+    const closed = ts.filter(t => t.status === 'closed' && t.pnl != null);
+    let summary = '';
+    if (closed.length) {
+      const wins = closed.filter(t => t.pnl > 0);
+      const net = closed.reduce((a, t) => a + (t.pnl || 0), 0);
+      const followed = closed.filter(t => /Yes|Mostly/.test(t.followedPlan || ''));
+      const disciplineRate = closed.length ? Math.round(followed.length / closed.length * 100) : 0;
+      summary = `<div class="jr-summary">
+        <div class="jr-stat"><div class="jr-stat-v ${net>=0?'jr-pnl-win':'jr-pnl-loss'}">${net>=0?'+':''}$${Math.round(net).toLocaleString()}</div><div class="jr-stat-l">net P&L</div></div>
+        <div class="jr-stat"><div class="jr-stat-v">${Math.round(wins.length/closed.length*100)}%</div><div class="jr-stat-l">win rate · ${closed.length}</div></div>
+        <div class="jr-stat"><div class="jr-stat-v">${disciplineRate}%</div><div class="jr-stat-l">followed plan</div></div>
+      </div>`;
+    }
+    let list = '';
+    if (!ts.length) {
+      list = `<div class="jr-empty">No trades logged yet.<br><br>Open a chart, draw your levels with ⊞ R/R, then tap ✎ JOURNAL to log a trade in a few taps. Log it on entry, update the outcome when you close.</div>`;
+    } else {
+      list = ts.map(t => {
+        const cur = chartCurPrefixFor(t.sym) || '$';
+        const isOpen = t.status === 'open';
+        const pnlCls = (t.pnl || 0) >= 0 ? 'jr-pnl-win' : 'jr-pnl-loss';
+        const when = new Date(t.openedAt).toLocaleDateString();
+        const broke = /No/.test(t.followedPlan || '');
+        return `<div class="jr-trade">
+          <div class="jr-trade-top">
+            <span class="jr-sym">${(t.sym||'?').replace(/\.(NZ|AX)$/, '')} <span style="color:var(--text-dim);font-size:10px;font-weight:400">${t.setup||''} · ${t.itv||''}</span></span>
+            <span>${isOpen ? '<span class="jr-open-tag">OPEN</span>' : `<span class="${pnlCls}">${t.pnl>=0?'+':''}${cur}${Math.round(t.pnl||0).toLocaleString()} (${t.pnlPct>=0?'+':''}${(t.pnlPct||0).toFixed(1)}%)</span>`}</span>
+          </div>
+          <div class="jr-meta">
+            ${when} · entry ${cur}${fmtJr(t.entry)}${t.stop?` · stop ${cur}${fmtJr(t.stop)}`:''}${t.target?` · target ${cur}${fmtJr(t.target)}`:''}${t.plannedRR?` · ${t.plannedRR}:1`:''}<br>
+            ${t.emotion?`mood: ${t.emotion}`:''}${t.exitReason?` · exit: ${t.exitReason}`:''}${t.followedPlan?` · <span style="color:${broke?'var(--red)':'var(--text-dim)'}">plan: ${t.followedPlan}</span>`:''}
+            ${t.note?`<br>“${esc(t.note)}”`:''}${t.lesson?`<br>📝 ${esc(t.lesson)}`:''}
+          </div>
+          <div style="margin-top:7px;display:flex;gap:6px">
+            ${isOpen ? `<span class="jr-opt" onclick="jrCloseTrade('${t.id}')">Close / add outcome</span>
+                       <span class="jr-opt" onclick="jrEditOpen('${t.id}')">Edit</span>` : ''}
+            <span class="jr-opt" onclick="jrDeleteTrade('${t.id}')" style="margin-left:auto">Delete</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    document.getElementById('jrBody').innerHTML = summary + list;
+    document.getElementById('journalOverlay').classList.add('show');
+  }
+
+  // ── Performance dashboard ───────────────────────────────────────────────────
+  // Turns the journal (real logged trades) and the paper scorecard (forward
+  // signal record) into equity curves and breakdowns — so you can see WHICH
+  // setups, emotions, and conditions actually make or cost you money.
+  async function openDashboard() {
+    if (!journalLoaded) await loadJournal();
+    if (!learnLoaded) await loadLearning();
+    document.getElementById('jrTitle').textContent = 'Performance Dashboard';
+    document.getElementById('jrTabDash')?.classList.add('active');
+    document.getElementById('jrTabList')?.classList.remove('active');
+
+    const closed = journal.trades.filter(t => t.status === 'closed' && t.pnl != null);
+    const paper = (learn.paper && learn.paper.stats && learn.paper.stats.history) || [];
+
+    if (!closed.length && !paper.length) {
+      document.getElementById('jrBody').innerHTML =
+        `<div class="jr-empty">No completed trades yet to analyze.<br><br>Log and close trades in the journal, and let the live scorecard accumulate paper trades. The dashboard fills in as that history builds — it needs a handful of closed trades to say anything useful.</div>`;
+      document.getElementById('journalOverlay').classList.add('show');
+      return;
+    }
+
+    let html = '';
+
+    // ── Journal equity curve (cumulative real P&L) ──
+    if (closed.length) {
+      const byTime = [...closed].sort((a, b) => (a.closedAt || a.openedAt) - (b.closedAt || b.openedAt));
+      let cum = 0; const pts = byTime.map(t => (cum += t.pnl));
+      html += `<div class="db-section"><div class="db-h">Journal equity — cumulative P&L ($)</div>
+        ${sparkline(pts, 120)}
+        <div class="db-tiny">${closed.length} closed trades · net ${cum >= 0 ? '+' : ''}$${Math.round(cum).toLocaleString()}</div></div>`;
+    }
+
+    // ── Behavioral insight: emotions & discipline (the real value) ──
+    if (closed.length >= 3) {
+      const byEmotion = groupStat(closed, t => t.emotion, t => t.pnl);
+      const byPlan = groupStat(closed, t => t.followedPlan, t => t.pnl);
+      // headline insight: compare disciplined vs not
+      const disc = closed.filter(t => /Yes|Mostly/.test(t.followedPlan || ''));
+      const undisc = closed.filter(t => /No/.test(t.followedPlan || ''));
+      if (disc.length && undisc.length) {
+        const dAvg = disc.reduce((a, t) => a + t.pnl, 0) / disc.length;
+        const uAvg = undisc.reduce((a, t) => a + t.pnl, 0) / undisc.length;
+        const cls = uAvg < dAvg ? 'warn' : '';
+        html += `<div class="db-insight ${cls}">When you <b>followed your plan</b>, average trade: ${dAvg >= 0 ? '+' : ''}$${Math.round(dAvg)}. When you <b>broke your rules</b>: ${uAvg >= 0 ? '+' : ''}$${Math.round(uAvg)}.${uAvg < dAvg ? ' Breaking your rules is costing you — the data says discipline pays.' : ''}</div>`;
+      }
+      // emotion breakdown
+      html += `<div class="db-section"><div class="db-h">Avg P&L by mood at entry</div>${barChart(byEmotion)}</div>`;
+    }
+
+    // ── Setup breakdown ──
+    if (closed.length >= 3) {
+      const bySetup = groupStat(closed, t => t.setup, t => t.pnl);
+      html += `<div class="db-section"><div class="db-h">Avg P&L by setup type</div>${barChart(bySetup)}</div>`;
+    }
+
+    // ── Exit-reason breakdown ──
+    if (closed.length >= 3) {
+      const byExit = groupStat(closed, t => t.exitReason, t => t.pnl);
+      html += `<div class="db-section"><div class="db-h">Avg P&L by how you exited</div>${barChart(byExit)}
+        <div class="db-tiny">Watch for "Manual — panic" bleeding money: that's fear overriding the plan.</div></div>`;
+    }
+
+    // ── Paper scorecard (forward signal record) ──
+    if (paper.length) {
+      const byTime = [...paper].sort((a, b) => (a.closedAt || 0) - (b.closedAt || 0));
+      let cum = 0; const pts = byTime.map(t => (cum += t.pct));
+      const wins = paper.filter(t => t.outcome === 'win').length;
+      html += `<div class="db-section"><div class="db-h">Paper scorecard — cumulative signal return (%)</div>
+        ${sparkline(pts, 120)}
+        <div class="db-tiny">${paper.length} auto paper trades · ${Math.round(wins / paper.length * 100)}% win · net ${cum >= 0 ? '+' : ''}${cum.toFixed(1)}% · forward-tested, no hindsight</div></div>`;
+      // by timeframe
+      const byItv = groupStat(paper, t => t.itv, t => t.pct);
+      html += `<div class="db-section"><div class="db-h">Paper return by timeframe (avg %)</div>${barChart(byItv, '%')}</div>`;
+    }
+
+    html += `<div class="db-tiny" style="margin-top:6px">Journal = your real logged trades. Paper scorecard = the strategy's forward-tested signals. Both are honest records — small samples still mislead, so let them build.</div>`;
+
+    document.getElementById('jrBody').innerHTML = html;
+    document.getElementById('journalOverlay').classList.add('show');
+  }
+
+  // group rows by a key fn, return [{label, avg, n, total}] sorted by avg desc
+  function groupStat(rows, keyFn, valFn) {
+    const m = {};
+    for (const r of rows) {
+      const k = keyFn(r) || '—';
+      (m[k] = m[k] || []).push(valFn(r));
+    }
+    return Object.entries(m).map(([label, vals]) => ({
+      label, n: vals.length,
+      total: vals.reduce((a, v) => a + v, 0),
+      avg: vals.reduce((a, v) => a + v, 0) / vals.length,
+    })).sort((a, b) => b.avg - a.avg);
+  }
+
+  // horizontal diverging bar chart centred on zero
+  function barChart(groups, unit = '$') {
+    if (!groups.length) return '<div class="db-tiny">No data</div>';
+    const max = Math.max(1, ...groups.map(g => Math.abs(g.avg)));
+    return `<div class="db-bars">` + groups.map(g => {
+      const pos = g.avg >= 0;
+      const w = Math.abs(g.avg) / max * 50; // half-width max
+      const val = unit === '%' ? `${pos ? '+' : ''}${g.avg.toFixed(1)}%` : `${pos ? '+' : ''}$${Math.round(g.avg)}`;
+      return `<div class="db-bar-row">
+        <span class="db-bar-label" title="${esc(g.label)} · ${g.n} trade${g.n !== 1 ? 's' : ''}">${esc(g.label)} <span class="db-tiny">(${g.n})</span></span>
+        <div class="db-bar-track"><div class="db-bar-mid"></div><div class="db-bar-fill ${pos ? 'pos' : 'neg'}" style="width:${w}%"></div></div>
+        <span class="db-bar-val" style="color:${pos ? 'var(--green)' : 'var(--red)'}">${val}</span>
+      </div>`;
+    }).join('') + `</div>`;
+  }
+
+  // minimal inline SVG equity sparkline with a zero baseline
+  function sparkline(pts, h = 100) {
+    if (!pts.length) return '<div class="db-tiny">No data</div>';
+    const w = 420, pad = 4;
+    const series = [0, ...pts]; // start from zero
+    const min = Math.min(...series), max = Math.max(...series);
+    const range = max - min || 1;
+    const x = (i) => pad + i / (series.length - 1) * (w - 2 * pad);
+    const y = (v) => pad + (1 - (v - min) / range) * (h - 2 * pad);
+    const path = series.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    const last = pts[pts.length - 1];
+    const col = last >= 0 ? 'var(--green)' : 'var(--red)';
+    const zeroY = y(0).toFixed(1);
+    const area = `${path} L${x(series.length - 1).toFixed(1)},${zeroY} L${x(0).toFixed(1)},${zeroY} Z`;
+    return `<svg class="db-equity" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <line x1="${pad}" y1="${zeroY}" x2="${w - pad}" y2="${zeroY}" stroke="var(--muted)" stroke-width="0.5" stroke-dasharray="3,3"/>
+      <path d="${area}" fill="${col}" opacity="0.12"/>
+      <path d="${path}" fill="none" stroke="${col}" stroke-width="1.5"/>
+    </svg>`;
+  }
+
+  function fmtJr(n) { return n == null ? '—' : (n < 1 ? (+n).toFixed(4) : (+n).toFixed(2)); }  // currency prefix for any symbol (journal entries may be from other markets)
+  function chartCurPrefixFor(sym) {
+    if (!sym) return '$';
+    if (/\.NZ$/.test(sym)) return 'NZ$';
+    if (/\.AX$/.test(sym)) return 'A$';
+    return '$';
+  }
+
+
   const searchBox  = document.getElementById('searchBox');
   const searchDrop = document.getElementById('searchDrop');
   let searchTimer = null;
@@ -2692,6 +4465,8 @@
     const want = new Set(lastRenderedRows.map(r => r.ticker).slice(0, 200));
     if (pinnedTicker) want.add(pinnedTicker);
     if (chartSymbol) want.add(chartSymbol);
+    // keep open paper positions streaming so stops/targets fire even off-screen
+    if (paper && paper.positions) for (const p of paper.positions) want.add(p.sym);
 
     const add = [...want].filter(t => !rtSubscribed.has(t));
     const drop = [...rtSubscribed].filter(t => !want.has(t));
@@ -2781,7 +4556,7 @@
       if (tr) {
         const tds = tr.children;
         const dir = row.price > prev ? 'tick-up' : row.price < prev ? 'tick-down' : '';
-        // [0]★ [1]ticker [2]price [3]Δ% [4]gap [5]vol [6]avgVol [7]relVol [8]rng [9]shares [10]cap
+        // [0]★ [1]ticker [2]price [3]Δ% [4]RS [5]gap [6]vol [7]avgVol [8]relVol [9]rng [10]shares [11]cap
         tds[2].textContent = rowCur(row) + row.price.toFixed(row.price < 1 ? 3 : 2);
         if (dir) {
           tds[2].classList.remove('tick-up', 'tick-down');
@@ -2791,15 +4566,17 @@
         const cls = row.change > 0 ? 'up' : row.change < 0 ? 'down' : 'flat';
         tds[3].textContent = (row.change > 0 ? '+' : '') + row.change.toFixed(2) + '%';
         tds[3].className = cls;
-        tds[5].textContent = fmtVol(row.volume);
-        const rvSpan = tds[7].querySelector('span');
+        if (tds[4]) tds[4].outerHTML = rsCell(row);   // RS recomputes from new change
+        tds[6].textContent = fmtVol(row.volume);
+        const rvSpan = tds[8].querySelector('span');
         if (rvSpan && row.relVol != null) rvSpan.textContent = row.relVol.toFixed(1) + 'x';
       }
     }
 
     // live-paint the open chart: update the current candle, or open a NEW one
-    // in the correct time bucket (so pre/post-market ticks line up properly)
-    if (chartSymbol === t.id && candleSeries && lastCandles.length
+    // in the correct time bucket (so pre/post-market ticks line up properly).
+    // SKIP entirely while replaying — replay drives the chart manually.
+    if (!replayOn && chartSymbol === t.id && candleSeries && lastCandles.length
         && typeof t.price === 'number' && t.price > 0) {
       const secsMap = { '1m':60, '2m':120, '5m':300, '15m':900, '30m':1800, '60m':3600, '1d':86400 };
       const secs = secsMap[chartInterval] || 60;
@@ -2837,6 +4614,9 @@
         + (chg != null ? `  ${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%` : '');
       if (chg != null) el.style.color = chg >= 0 ? 'var(--green)' : 'var(--red)';
     }
+
+    // paper-trading: check this symbol's open positions for stop/target hits
+    if (typeof t.price === 'number' && t.price > 0) paperCheckStops(t.id, t.price);
   }
 
   // ── Candlestick chart modal ───────────────────────────────────────────────
@@ -2844,6 +4624,7 @@
   let candleSeries = null;
   let volumeSeries = null;
   let chartSymbol = null;    // full Yahoo symbol incl. .NZ/.AX suffix
+  let chartName = null;      // display name, recorded on paper trades
   let chartInterval = '1m';
   let chartRange = '1d';
   let chartTimer = null;     // 60s auto-refresh while the modal is open
@@ -2861,6 +4642,7 @@
 
   function openChart(ticker, name) {
     chartSymbol = ticker;
+    chartName = name || ticker;
     clearFib(); // fib levels belong to one stock — never carry them over
     document.getElementById('chartSym').textContent = ticker.replace(/\.(NZ|AX)$/, '');
     document.getElementById('chartName').textContent = name || '';
@@ -2878,6 +4660,11 @@
     clearInterval(chartTimer);
     chartTimer = null;
     clearFib();
+    closeSizer();
+    clearRR();
+    if (replayOn) { replayOn = false; clearInterval(replayTimer); replayTimer = null;
+      document.getElementById('replayBtn')?.classList.remove('active');
+      document.getElementById('replayControls')?.remove(); }
     destroyChart();
     chartSymbol = null;
     rtResubscribe();
@@ -2892,13 +4679,23 @@
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     hideRowMenu();
+    if (document.getElementById('paperOverlay').classList.contains('show')) { closePaper(); return; }
+    if (document.getElementById('journalOverlay').classList.contains('show')) { closeJournal(); return; }
     if (newsSymbol) { closeNews(); return; }
     if (!chartSymbol) return;
+    if (replayOn) { stopReplay(); return; }   // Esc exits replay first
+    if (rrMode) { toggleRR(); return; }      // Esc cancels R/R drawing first
     if (fibMode) { toggleFibMode(); return; } // Esc cancels drawing first
     closeChart();
   });
   document.getElementById('chartOverlay').addEventListener('click', (e) => {
     if (e.target.id === 'chartOverlay') closeChart();
+  });
+  document.getElementById('journalOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'journalOverlay') closeJournal();
+  });
+  document.getElementById('paperOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'paperOverlay') closePaper();
   });
 
   // Timeframe buttons
@@ -2908,8 +4705,142 @@
     setTimeframe(btn.dataset.interval, btn.dataset.range);
   });
 
-  function setTimeframe(interval, range) {
-    chartInterval = interval;
+  // ── Replay / practice mode ──────────────────────────────────────────────────
+  // Step through a chart's history bar-by-bar to practice reading setups with no
+  // lookahead: the chart shows only bars "so far", the analysis recomputes on
+  // that prefix, and you reveal the next bar when you're ready. You can place a
+  // practice trade and see how it plays out as bars unfold — risk-free reps.
+  let replayOn = false;
+  let replayFull = [];      // the complete candle set
+  let replayIdx = 0;        // how many bars are currently revealed
+  let replayTimer = null;   // play interval
+  let replayTrade = null;   // { entry, idx } a practice position
+  let replayPnls = [];      // closed practice trades this session: array of % returns
+
+  function toggleReplay() {
+    if (replayOn) { stopReplay(); return; }
+    if (!lastCandles.length || lastCandles.length < 35) {
+      setStatus('error', 'Need more chart history to replay'); return;
+    }
+    replayOn = true;
+    document.getElementById('replayBtn').classList.add('active');
+    replayFull = lastCandles.slice();
+    // start with ~60% revealed so there's context to read, future hidden
+    replayIdx = Math.max(30, Math.floor(replayFull.length * 0.6));
+    replayTrade = null; replayPnls = [];
+    // pause live refresh while replaying
+    clearInterval(chartTimer); chartTimer = null;
+    renderReplay();
+    showReplayBar();
+  }
+
+  function stopReplay() {
+    replayOn = false;
+    clearInterval(replayTimer); replayTimer = null;
+    document.getElementById('replayBtn').classList.remove('active');
+    const bar = document.getElementById('replayControls');
+    if (bar) bar.remove();
+    // restore the full chart and live refresh
+    if (replayFull.length) {
+      lastCandles = replayFull;
+      candleSeries.setData(replayFull.map(c => ({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close })));
+      volumeSeries.setData(replayFull.map(c => ({ time: c.time, value: c.volume,
+        color: c.close >= c.open ? 'rgba(0,212,170,0.35)' : 'rgba(255,77,106,0.35)' })));
+      lwChart.timeScale().fitContent();
+      updateIndicators();
+      if (patternsOn) runPatternScan();
+    }
+    scheduleChartRefresh();
+  }
+
+  function showReplayBar() {
+    const shown = replayFull.slice(0, replayIdx);
+    if (!shown.length) return;
+    lastCandles = shown;   // analysis reads this — only the revealed prefix
+    candleSeries.setData(shown.map(c => ({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close })));
+    volumeSeries.setData(shown.map(c => ({ time: c.time, value: c.volume,
+      color: c.close >= c.open ? 'rgba(0,212,170,0.35)' : 'rgba(255,77,106,0.35)' })));
+    updateIndicators();
+    if (patternsOn) runPatternScan();
+    // mark a practice position if open
+    if (replayTrade) {
+      const last = shown[shown.length - 1];
+      const pnl = (last.close - replayTrade.entry) / replayTrade.entry * 100;
+      try {
+        candleSeries.setMarkers([{ time: replayFull[replayTrade.idx].time, position: 'belowBar',
+          color: '#3b82f6', shape: 'arrowUp', text: 'BUY' }]);
+      } catch {}
+    }
+    updateReplayStatus();
+  }
+
+  function replayStep(n = 1) {
+    replayIdx = Math.min(replayFull.length, replayIdx + n);
+    showReplayBar();
+    if (replayIdx >= replayFull.length) { clearInterval(replayTimer); replayTimer = null;
+      document.getElementById('replayPlay') && (document.getElementById('replayPlay').textContent = '▶'); }
+  }
+
+  function replayPlayPause() {
+    const btn = document.getElementById('replayPlay');
+    if (replayTimer) { clearInterval(replayTimer); replayTimer = null; if (btn) btn.textContent = '▶'; return; }
+    if (btn) btn.textContent = '⏸';
+    replayTimer = setInterval(() => replayStep(1), 700);
+  }
+
+  function replayBuy() {
+    const shown = replayFull.slice(0, replayIdx);
+    if (!shown.length) return;
+    if (replayTrade) {        // already in — this click SELLS
+      const exit = shown[shown.length - 1].close;
+      const ret = (exit - replayTrade.entry) / replayTrade.entry * 100;
+      replayPnls.push(ret);
+      replayTrade = null;
+    } else {
+      replayTrade = { entry: shown[shown.length - 1].close, idx: replayIdx - 1 };
+    }
+    showReplayBar();
+  }
+
+  function updateReplayStatus() {
+    const el = document.getElementById('replayStatus');
+    if (!el) return;
+    const remaining = replayFull.length - replayIdx;
+    let txt = `Bar ${replayIdx}/${replayFull.length}`;
+    if (replayTrade) {
+      const last = replayFull[replayIdx - 1];
+      const pnl = (last.close - replayTrade.entry) / last.close * 100;
+      const live = (last.close - replayTrade.entry) / replayTrade.entry * 100;
+      txt += ` · IN @ ${fmtPrice(replayTrade.entry)} (${live >= 0 ? '+' : ''}${live.toFixed(2)}%)`;
+    }
+    if (replayPnls.length) {
+      const tot = replayPnls.reduce((a, b) => a + b, 0);
+      const wins = replayPnls.filter(p => p > 0).length;
+      txt += ` · practice: ${replayPnls.length} trades, ${tot >= 0 ? '+' : ''}${tot.toFixed(1)}%, ${Math.round(wins / replayPnls.length * 100)}% win`;
+    }
+    el.textContent = txt;
+  }
+
+  function fmtPrice(p) { return (chartCurPrefix || currency || '$') + (p < 1 ? p.toFixed(4) : p.toFixed(2)); }
+
+  function renderReplay() {
+    let bar = document.getElementById('replayControls');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'replayControls';
+      bar.className = 'replay-controls';
+      bar.innerHTML = `
+        <button id="replayPlay" onclick="replayPlayPause()" title="Play / pause auto-advance">▶</button>
+        <button onclick="replayStep(1)" title="Reveal the next bar">⏭ Step</button>
+        <button onclick="replayStep(5)" title="Skip 5 bars">+5</button>
+        <button id="replayBuyBtn" onclick="replayBuy()" title="Place / close a practice trade at the last revealed close">⇄ Buy/Sell</button>
+        <span id="replayStatus" class="replay-status"></span>
+        <button onclick="stopReplay()" class="replay-exit" title="Exit replay (Esc)">✕ Exit replay</button>`;
+      document.getElementById('chartContainer').appendChild(bar);
+    }
+  }
+
+  function setTimeframe(interval, range) {    chartInterval = interval;
     chartRange = range;
     // only the timeframe buttons have data-interval — don't clobber the
     // VWAP/EMA/PATTERNS buttons, which share the .tf-btn class
@@ -2924,7 +4855,7 @@
     clearInterval(chartTimer);
     // Auto-refresh every 60s for intraday timeframes only
     if (chartInterval !== '1d') {
-      chartTimer = setInterval(() => loadChartData(false), 60000);
+      chartTimer = setInterval(() => { if (!replayOn) loadChartData(false); }, 60000);
       document.getElementById('chartAuto').textContent = rtOn
         ? '· streaming live · pre/post-market shown'
         : '· auto-updates every 60s';
@@ -2972,10 +4903,25 @@
     forecastSeries = []; // forecast lines died with the old chart too
     fvgSeries = [];
     levelLines = [];     // price-line handles died with the old chart
+    backtestSeries = [];  // backtest connectors died with the old chart
+    backtestOn = false;
     vpSeries = [];
     vpPriceLines = [];
     const stalePanel = document.querySelector('#chartContainer .pattern-panel');
     if (stalePanel) stalePanel.remove();
+    const staleBt = document.querySelector('#chartContainer .backtest-panel');
+    if (staleBt) staleBt.remove();
+    const staleSz = document.querySelector('#chartContainer .sizer-panel');
+    if (staleSz) { staleSz.remove(); sizerOn = false; document.getElementById('sizerBtn')?.classList.remove('active'); }
+    const staleRR = document.querySelector('#chartContainer .rr-panel');
+    if (staleRR) staleRR.remove();
+    rrLines = []; rrMode = false; rrStage = 0; rrPrices = { entry: null, stop: null, target: null };
+    document.getElementById('rrBtn')?.classList.remove('active');
+    document.getElementById('rrClearBtn') && (document.getElementById('rrClearBtn').style.display = 'none');
+    // a timeframe switch invalidates a replay session
+    if (replayOn) { replayOn = false; clearInterval(replayTimer); replayTimer = null;
+      document.getElementById('replayBtn')?.classList.remove('active');
+      document.getElementById('replayControls')?.remove(); }
     lwChart.subscribeClick(onChartClick);
 
     volumeSeries = lwChart.addHistogramSeries({
@@ -2986,8 +4932,12 @@
       scaleMargins: { top: 0.82, bottom: 0 }, // volume in the bottom strip
     });
 
-    // keep the chart sized to the modal
-    chartResizeObs = new ResizeObserver(() => lwChart && lwChart.timeScale());
+    // The chart uses autoSize:true, so it tracks the container's dimensions on
+    // its own as the modal is resized. We keep a light observer only to nudge a
+    // re-layout on some browsers; it deliberately does NOT scroll the view.
+    chartResizeObs = new ResizeObserver(() => {
+      if (lwChart) { try { lwChart.applyOptions({}); } catch {} }
+    });
     chartResizeObs.observe(container);
   }
 

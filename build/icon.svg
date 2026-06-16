@@ -1,0 +1,60 @@
+<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101622"/>
+      <stop offset="1" stop-color="#080b10"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#00d4aa" stop-opacity="0"/>
+      <stop offset="1" stop-color="#00d4aa" stop-opacity="0.18"/>
+    </linearGradient>
+    <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00d4aa" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#00d4aa" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background tile -->
+  <rect x="4" y="4" width="248" height="248" rx="52" fill="url(#bg)"/>
+  <rect x="4" y="4" width="248" height="248" rx="52" fill="url(#glow)"/>
+  <rect x="8" y="8" width="240" height="240" rx="48" fill="none"
+        stroke="#00d4aa" stroke-opacity="0.35" stroke-width="6"/>
+
+  <!-- ascending trend line behind the candles -->
+  <path d="M 44 196 L 128 132 L 212 56" fill="none"
+        stroke="#f5c542" stroke-opacity="0.55" stroke-width="11"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- candle 1: red, low -->
+  <line x1="70" y1="128" x2="70" y2="212" stroke="#ff4d6a" stroke-width="9" stroke-linecap="round"/>
+  <rect x="52" y="144" width="36" height="52" rx="7" fill="#ff4d6a"/>
+
+  <!-- candle 2: teal, mid -->
+  <line x1="128" y1="84" x2="128" y2="174" stroke="#00d4aa" stroke-width="9" stroke-linecap="round"/>
+  <rect x="110" y="100" width="36" height="56" rx="7" fill="#00d4aa"/>
+
+  <!-- candle 3: teal, high -->
+  <line x1="186" y1="34" x2="186" y2="130" stroke="#00d4aa" stroke-width="9" stroke-linecap="round"/>
+  <rect x="168" y="52" width="36" height="60" rx="7" fill="#00d4aa"/>
+
+  <!-- ── radar dial, bottom right ── -->
+  <!-- dark backing so it pops over everything behind it -->
+  <circle cx="190" cy="190" r="50" fill="#080b10"/>
+  <circle cx="190" cy="190" r="46" fill="#0a1018" stroke="#00d4aa" stroke-width="5"/>
+
+  <!-- range rings + crosshair -->
+  <circle cx="190" cy="190" r="31" fill="none" stroke="#00d4aa" stroke-opacity="0.35" stroke-width="2.5"/>
+  <circle cx="190" cy="190" r="16" fill="none" stroke="#00d4aa" stroke-opacity="0.35" stroke-width="2.5"/>
+  <line x1="146" y1="190" x2="234" y2="190" stroke="#00d4aa" stroke-opacity="0.22" stroke-width="2"/>
+  <line x1="190" y1="146" x2="190" y2="234" stroke="#00d4aa" stroke-opacity="0.22" stroke-width="2"/>
+
+  <!-- sweep wedge: from due north arcing 70 degrees clockwise -->
+  <path d="M 190 190 L 190 147 A 43 43 0 0 1 230.4 175.3 Z" fill="url(#sweep)"/>
+  <!-- bright leading edge of the sweep -->
+  <line x1="190" y1="190" x2="230.4" y2="175.3" stroke="#00d4aa" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="190" cy="190" r="5.5" fill="#00d4aa"/>
+
+  <!-- blips: stocks on the radar -->
+  <circle cx="206" cy="166" r="5" fill="#f5c542"/>
+  <circle cx="172" cy="206" r="4" fill="#ff4d6a" fill-opacity="0.9"/>
+</svg>

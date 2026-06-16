@@ -1,6 +1,6 @@
 {
   "name": "stock-scanner",
-  "version": "3.0.0",
+  "version": "3.0.8",
   "description": "Day trader stock scanner — NASDAQ & NYSE with live data, watch list, pattern AI, and (coming) Tiger trading",
   "type": "module",
   "main": "main.js",
